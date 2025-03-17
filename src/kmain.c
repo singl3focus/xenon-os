@@ -1,4 +1,8 @@
-void kmain() {
-   volatile unsigned int magic = 0xCAFEBABE; // Используем volatile
-    (void)magic; // Гарантируем, что переменная не будет удалена
+#include "fb.h"
+#include "serial.h"
+
+int kmain() {
+    fb_write("Hello, World!", 13);
+    serial_write("Hello, Serial Port!", 19);
+    return 0;
 }
