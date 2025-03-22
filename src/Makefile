@@ -12,7 +12,7 @@ kernel.elf: $(OBJECTS)
 	ld $(LDFLAGS) $(OBJECTS) -o kernel.elf
 
 os.iso: kernel.elf
-	move kernel.elf iso/boot/kernel.elf
+	cp kernel.elf iso/boot/kernel.elf
 	genisoimage -R                              \
                 -b boot/grub/stage2_eltorito    \
                 -no-emul-boot                   \
