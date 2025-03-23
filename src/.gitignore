@@ -1,4 +1,10 @@
+# Completed files
 *.o
 *.iso
-bochslog.txt
 *.out
+
+# Logs
+bochslog.txt
+
+# Configs
+configs/
