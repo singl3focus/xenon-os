@@ -1,0 +1,4 @@
+*.o
+*.iso
+bochslog.txt
+*.out
