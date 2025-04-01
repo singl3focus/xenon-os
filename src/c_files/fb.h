@@ -1,5 +1,5 @@
-#ifndef INCLUDE_FB_H
-#define INCLUDE_FB_H
+#ifndef FB_H
+#define FB_H
 
 /** fb_write:
  *  Writes the contents of the buffer buf of length len to the screen.
@@ -9,4 +9,6 @@
  */
 int fb_write(char *buf, unsigned int len);
 
-#endif /* INCLUDE_FB_H */
+void fb_clear(void);
+
+#endif

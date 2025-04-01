@@ -8,3 +8,6 @@ bochslog.txt
 
 # Configs
 configs/
+
+# kernel.elf
+iso/boot/kernel.elf

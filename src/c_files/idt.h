@@ -1,6 +1,7 @@
-#pragma once
+#ifndef IDT_H
+#define IDT_H
 
-#include <stdint.h>
+#include "types.h"
 
 struct idt_entry {
     uint16_t offset_low;
@@ -16,3 +17,5 @@ struct idt_ptr {
 } __attribute__((packed));
 
 void init_idt();
+
+#endif
