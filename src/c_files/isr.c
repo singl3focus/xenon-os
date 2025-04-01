@@ -25,3 +25,5 @@ void isr_handler(ISR_Registers regs) {
 
     fb_write("\n", 1);
 }
+
+// todo: add isr hadnlers registration
