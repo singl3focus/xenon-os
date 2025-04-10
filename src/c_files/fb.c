@@ -90,7 +90,7 @@ int fb_write(char *buf, unsigned int len) {
 
          // Проверка на выход за границы экрана
          if (cursor_y >= screen_height) {
-            // todo: прокрутка экрана 
+            // TODO: прокрутка экрана 
             cursor_y = screen_height - 1;
         }
 

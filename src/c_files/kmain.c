@@ -11,7 +11,7 @@ void kmain() {
     init_idt();
     pic_remap();
     
-    keyboard_init(); // not tested
+    keyboard_init();
     
     asm volatile("sti"); // Включить прерывания
 

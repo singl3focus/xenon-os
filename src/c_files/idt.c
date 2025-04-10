@@ -23,7 +23,7 @@ void init_idt() {
     idt_set_gate(0, (uint32_t)&isr0, 0x08, 0x8E);   // Деление на ноль
     idt_set_gate(8, (uint32_t)&isr8, 0x08, 0x8E);   // Double Fault
     idt_set_gate(13, (uint32_t)&isr13, 0x08, 0x8E); // General Protection Fault
-    // todo: добавить остальные исключения
+    // TODO: добавить остальные исключения
 
     idt_set_gate(32, (uint32_t)&irq0, 0x08, 0x8E);  // IRQ0 (Таймер)
     idt_set_gate(33, (uint32_t)&irq1, 0x08, 0x8E);  // IRQ1 (Клавиатура)
