@@ -1,9 +1,12 @@
+#include "fb.h"
 #include "io.h"
 
 #define FB_COMMAND_PORT         0x3D4
 #define FB_DATA_PORT            0x3D5
 #define FB_HIGH_BYTE_COMMAND    14
 #define FB_LOW_BYTE_COMMAND     15
+
+Framebuffer_Info fb_info;
 
 char *fb = (char *) 0x000B8000;
 
@@ -13,36 +16,23 @@ unsigned int cursor_y = 0;  // Текущая позиция по Y (номер 
 const unsigned int screen_width = 80;  // Ширина экрана в символах 
 const unsigned int screen_height = 25; // Высота экрана
 
-/*
-    0x0	Черный	#000000
-    0x1	Синий	#0000AA
-    0x2	Зеленый	#00AA00
-    0x3	Бирюзовый	#00AAAA
-    0x4	Красный	#AA0000
-    0x5	Фиолетовый	#AA00AA
-    0x6	Коричневый	#AA5500
-    0x7	Серый (светлый)	#AAAAAA
-    0x8	Темно-серый	#555555
-    0x9	Голубой	#5555FF
-    0xA	Ярко-зеленый	#55FF55
-    0xB	Бирюзовый (яркий)	#55FFFF
-    0xC	Ярко-красный	#FF5555
-    0xD	Розовый	#FF55FF
-    0xE	Желтый	#FFFF55
-    0xF	Белый	#FFFFFF
-*/
 const unsigned char fg = 0x0A;      
-const unsigned char bg = 0x00;          
+const unsigned char bg = 0x00;  
 
-/** fb_write_cell:
- *  Writes a character with the given foreground and background to position i
- *  in the framebuffer.
- *
- *  @param i  The location in the framebuffer
- *  @param c  The character
- *  @param fg The foreground color
- *  @param bg The background color
- */
+void draw_pixel(uint32_t x, uint32_t y, uint32_t color) {
+    if (x >= fb_info.width || y >= fb_info.height) return;
+    uint32_t* pixel = (uint32_t*)((uint8_t*)fb_info.address + y * fb_info.pitch + x * 4);
+    *pixel = color;
+}
+
+void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
+    for (uint32_t i = 0; i < height; i++) {
+        for (uint32_t j = 0; j < width; j++) {
+            draw_pixel(x + j, y + i, color);
+        }
+    }
+}
+
 void fb_write_cell(unsigned int i, char c, unsigned char bg, unsigned char fg) {
     fb[i] = c;
     fb[i + 1] = ((fg & 0x0F) << 4) | (bg & 0x0F);

@@ -1,14 +1,13 @@
 #ifndef FB_H
 #define FB_H
 
-/** fb_write:
- *  Writes the contents of the buffer buf of length len to the screen.
- *
- *  @param buf The buffer to write
- *  @param len The length of the buffer
- */
-int fb_write(char *buf, unsigned int len);
+#include "types.h"
 
-void fb_clear(void);
+extern Framebuffer_Info fb_info;
+
+void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
+void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
+
+void fb_clear();
 
 #endif

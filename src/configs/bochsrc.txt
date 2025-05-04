@@ -1,7 +1,7 @@
 megs:            32
 display_library: sdl2
-romimage:        file=/usr/share/bochs/BIOS-bochs-latest
-vgaromimage:     file=/usr/share/vgabios/vgabios.bin
+romimage:        file=/home/ascom/bochs-3.0/bios/BIOS-bochs-latest
+vgaromimage:     file=/home/ascom/bochs-3.0/bios/VGABIOS-lgpl-latest.bin
 ata0-master:     type=cdrom, path=os.iso, status=inserted
 boot:            cdrom
 log:             bochslog.txt
