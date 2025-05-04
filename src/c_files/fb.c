@@ -6,8 +6,6 @@
 #define FB_HIGH_BYTE_COMMAND    14
 #define FB_LOW_BYTE_COMMAND     15
 
-Framebuffer_Info fb_info;
-
 char *fb = (char *) 0x000B8000;
 
 unsigned int cursor_x = 0;  // Текущая позиция по X (номер символа в строке)
@@ -22,7 +20,7 @@ const unsigned char bg = 0x00;
 void draw_pixel(uint32_t x, uint32_t y, uint32_t color) {
     if (x >= fb_info.width || y >= fb_info.height) return;
     uint32_t* pixel = (uint32_t*)((uint8_t*)fb_info.address + y * fb_info.pitch + x * 4);
-    *pixel = color;
+    *pixel = color; // Формат 0x00RRGGBB
 }
 
 void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {

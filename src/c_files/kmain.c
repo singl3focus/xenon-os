@@ -4,11 +4,12 @@
 #include "pic.h"
 #include "keyboard.h"
 #include "types.h"
+#include "bga.h"
 
 extern uint8_t vbe_mode_info[256]; // Внешняя ссылка на данные VBE
+extern Framebuffer_Info fb_info;
 
 void kmain() {
-    fb_clear(); // * it's provide some not default work now, but in the future - we will fix it
     // serial_init(); // not implemented
     
     init_idt();
@@ -16,28 +17,21 @@ void kmain() {
     
     keyboard_init();
     
+    // Инициализация BGA
+    bga_init();
+
+    // Получение адреса фреймбуфера через PCI BAR0 (для Bochs)
+    fb_info.address = 0xE0000000; // Стандартный адрес LFB для Bochs
+    fb_info.width = 1024;
+    fb_info.height = 768;
+    fb_info.pitch = fb_info.width * 4; // 32bpp = 4 байта на пиксель
+    fb_info.bpp = 32;
+
+    // Пример рисования
+    draw_rect(0, 0, fb_info.width, fb_info.height, 0x000000); // Очистка экрана
+    draw_rect(100, 100, 200, 150, 0xFF0000); // Красный прямоугольник
+
     asm volatile("sti"); // Включить прерывания
-    
-    // Извлечение информации из VBE Mode Info Block
-    fb_info.address = (uintptr_t)(*(uint32_t*)(vbe_mode_info + 0x28)); // PhysBasePtr
-    fb_info.width = *(uint16_t*)(vbe_mode_info + 0x12);   // XResolution
-    fb_info.height = *(uint16_t*)(vbe_mode_info + 0x14);  // YResolution
-    fb_info.pitch = *(uint16_t*)(vbe_mode_info + 0x10);   // BytesPerScanline
-    fb_info.bpp = *(uint8_t*)(vbe_mode_info + 0x1B);      // BitsPerPixel
-
-    // Пример: заполнение экрана красным цветом
-    uint32_t color = 0xFF0000; // RGB (24/32bpp)
-    for (uint32_t y = 0; y < fb_info.height; y++) {
-        for (uint32_t x = 0; x < fb_info.width; x++) {
-            uint32_t* pixel = (uint32_t*)((uint8_t*)fb_info.address + y * fb_info.pitch + x * 4);
-            *pixel = color;
-        }
-    }
-
-    // Очистка экрана
-    draw_rect(0, 0, fb_info.width, fb_info.height, 0xFF0000);
-
-    draw_rect(100, 100, 200, 100, 0x00FF00);
 
     while(1);
 }

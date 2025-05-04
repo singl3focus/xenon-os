@@ -3,11 +3,11 @@ ENTRY(loader)
 SECTIONS {
     . = 0x00100000;
 
-    .multiboot ALIGN(0x1000) : {
-        *(.multiboot)
+    .multiboot ALIGN(8) : {
+        KEEP(*(.multiboot))
     }
 
-    .text ALIGN(0x1000) : {
+    .text ALIGN(4K) : {
         *(.text)
     }
 
@@ -22,11 +22,5 @@ SECTIONS {
     .bss ALIGN(0x1000) : {
         *(COMMON)
         *(.bss)
-    }
-
-    /* Резервируем 256 байт для VBE Mode Info */
-    .vbe_info ALIGN(0x1000) : {
-        PROVIDE(vbe_mode_info = .);
-        . += 256;
     }
 }
