@@ -7,7 +7,6 @@
 #include "bga.h"
 #include "draw_logo.h"
 
-extern uint8_t vbe_mode_info[256]; // Внешняя ссылка на данные VBE
 extern Framebuffer_Info fb_info;
 
 void kmain() {
@@ -28,9 +27,11 @@ void kmain() {
     fb_info.pitch = fb_info.width * 4; // 32bpp = 4 байта на пиксель
     fb_info.bpp = 32;
 
-    // Пример рисования
-    draw_rect(0, 0, fb_info.width, fb_info.height, 0x000000); // Очистка экрана
+    fb_clear(0x001F2126); // Очистка экрана
     draw_logo();
+
+    fb_write("Welcome to Xenon OS!\n\n", 22);
+    fb_write("Enter text:", 12);
 
     asm volatile("sti"); // Включить прерывания
 

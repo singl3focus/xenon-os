@@ -2,32 +2,46 @@
 #include "draw_logo.h"
 
 void draw_logo(){
-    for(int i = 0; i < 62; ++i){
-        draw_line(0, i, 1024, 0x00BF00FF);
-        delay(500000);
+    for (int i = 10; i <= 1014; ++i){
+        draw_pixel(i, 10, 0x00FFFFFF);
+        delay(25000);
     }
+    for (int i = 10; i <= 92; ++i){
+        draw_pixel(1014, i, 0x00FFFFFF);
+        delay(25000);
+    }
+    for (int i = 1014; i >= 10; --i){
+        draw_pixel(i, 92, 0x00FFFFFF);
+        delay(25000);
+    }
+    for (int i = 92; i >= 10; --i){
+        draw_pixel(10, i, 0x00FFFFFF);
+        delay(25000);
+    }
+    const uint8_t name_os[8] = {'X', 'e', 'n', 'o', 'n', ' ', 'O', 'S'};
     int x_coord = 352;
-    draw_char(x_coord, 15, 'X', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
-    x_coord += 40;
-    draw_char(x_coord, 15, 'e', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
-    x_coord += 40;
-    draw_char(x_coord, 15, 'n', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
-    x_coord += 40;
-    draw_char(x_coord, 15, 'o', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
-    x_coord += 40;
-    draw_char(x_coord, 15, 'n', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
-    x_coord += 40;
-    draw_char(x_coord, 15, ' ', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
-    x_coord += 40;
-    draw_char(x_coord, 15, 'O', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
-    x_coord += 40;
-    draw_char(x_coord, 15, 'S', 0x00000000, 0x00BF00FF, 5);
-    delay(5000000);
+    int i = 0;
+    while (i < 8){
+        draw_char(x_coord, 34, name_os[i], 0x00FFFFFF, 0x001F2126, 5);
+        delay(5000000);
+        x_coord += 40;
+        i += 1;
+    } 
+    
+    for (int i = 15; i <= 1009; ++i){
+        draw_pixel(i, 15, 0x00FFFFFF);
+        delay(25000);
+    }
+    for (int i = 15; i <= 87; ++i){
+        draw_pixel(1009, i, 0x00FFFFFF);
+        delay(25000);
+    }
+    for (int i = 1009; i >= 15; --i){
+        draw_pixel(i, 87, 0x00FFFFFF);
+        delay(25000);
+    }
+    for (int i = 87; i >= 15; --i){
+        draw_pixel(15, i, 0x00FFFFFF);
+        delay(25000);
+    }
 }

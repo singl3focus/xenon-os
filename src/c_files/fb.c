@@ -2,24 +2,23 @@
 #include "io.h"
 #include "font.h"
 
-#define FB_COMMAND_PORT         0x3D4
-#define FB_DATA_PORT            0x3D5
-#define FB_HIGH_BYTE_COMMAND    14
-#define FB_LOW_BYTE_COMMAND     15
+Framebuffer_Info fb_info;
 
-#define MAX_COLS     1024 /* количество столбцов экрана               */
-#define MAX_ROWS     768 /* количество строк экрана                  */
+static uint32_t cursor_x = 15;
+static uint32_t cursor_y = 120;
+static const int CHAR_WIDTH = 8;
+static const int CHAR_HEIGHT = 8;
+static const int SCALE = 2;  // Масштаб шрифта (можно поменять)
+static const uint32_t FG_COLOR = 0xFFFFFF;  // Белый
+static const uint32_t BG_COLOR = 0x1F2126;  // Чёрный
 
-char *fb = (char *) 0x000B8000;
-
-unsigned int cursor_x = 0;  // Текущая позиция по X (номер символа в строке)
-unsigned int cursor_y = 0;  // Текущая позиция по Y (номер строки)
-
-const unsigned int screen_width = 80;  // Ширина экрана в символах 
-const unsigned int screen_height = 25; // Высота экрана
-
-const unsigned char fg = 0x0A;      
-const unsigned char bg = 0x00;  
+void fb_init(uint64_t address, uint32_t pitch, uint32_t width, uint32_t height, uint8_t bpp) {
+    fb_info.address = address;
+    fb_info.pitch = pitch;
+    fb_info.width = width;
+    fb_info.height = height;
+    fb_info.bpp = bpp;
+}
 
 void draw_pixel(uint32_t x, uint32_t y, uint32_t color) {
     if (x >= fb_info.width || y >= fb_info.height) return;
@@ -64,6 +63,10 @@ void draw_string(int x, int y, const char* str, uint32_t fg_color, uint32_t bg_c
     }
 }
 
+void fb_clear(uint32_t color) {
+    draw_rect(0, 0, fb_info.width, fb_info.height, color);
+}
+
 void delay(unsigned int count) {
     for (volatile unsigned int i = 0; i < count; i++) {
         // Простой пустой цикл — задержка
@@ -71,74 +74,55 @@ void delay(unsigned int count) {
     }
 }
 
-void fb_write_cell(unsigned int i, char c, unsigned char bg, unsigned char fg) {
-    fb[i] = c;
-    fb[i + 1] = ((fg & 0x0F) << 4) | (bg & 0x0F);
-}
+void fb_scroll() {
+    uint32_t row_height = CHAR_HEIGHT * SCALE;
+    uint32_t screen_bytes = fb_info.pitch * fb_info.height;
+    uint8_t *fb_ptr = (uint8_t*) fb_info.address;
 
-/** fb_move_cursor:
- *  Moves the cursor of the framebuffer to the given position
- *
- *  @param pos The new position of the cursor
- */
-void fb_move_cursor(unsigned short pos) {
-    outb(FB_COMMAND_PORT, FB_HIGH_BYTE_COMMAND);
-    outb(FB_DATA_PORT,    ((pos >> 8) & 0x00FF));
-    outb(FB_COMMAND_PORT, FB_LOW_BYTE_COMMAND);
-    outb(FB_DATA_PORT,    pos & 0x00FF);
-}
+    // Количество байт, соответствующее сдвигу на 1 строку
+    uint32_t shift_bytes = row_height * fb_info.pitch;
 
-void fb_clear() {
-    const char blank = ' '; // Пробел для очистки
+    // Сдвигаем framebuffer вверх на одну строку
+    for (uint32_t i = 0; i < screen_bytes - shift_bytes; i++) {
+        fb_ptr[i] = fb_ptr[i + shift_bytes];
+    }
 
-    // Заполнение видеобуфера пробелами с атрибутами
-    for (unsigned int y = 0; y < screen_height; y++) {
-        for (unsigned int x = 0; x < screen_width; x++) {
-            const unsigned int pos = y * screen_width + x;
-            fb[pos * 2] = blank;          // Символ
-            fb[pos * 2 + 1] = bg;  // Атрибуты цвета
+    // Очищаем последнюю строку
+    uint32_t clear_y_start = fb_info.height - row_height;
+    for (uint32_t y = clear_y_start; y < fb_info.height; y++) {
+        for (uint32_t x = 0; x < fb_info.width; x++) {
+            draw_pixel(x, y, BG_COLOR);
         }
     }
 
-    // Сброс позиции курсора
-    cursor_x = 0;
-    cursor_y = 0;
-    fb_move_cursor(0);  // Перемещаем курсор в (0, 0)
+    // Перенос курсора на начало последней строки
+    cursor_x = 15;
+    cursor_y = clear_y_start;
 }
 
-/** fb_write:
- *  Writes the contents of the buffer buf of length len to the screen.
- *
- *  @param buf The buffer to write
- *  @param len The length of the buffer
- */
-int fb_write(char *buf, unsigned int len) {
+int fb_write(const char *buf, unsigned int len) {
     for (unsigned int i = 0; i < len; i++) {
         char c = buf[i];
 
-         // Проверка на выход за границы экрана
-         if (cursor_y >= screen_height) {
-            // TODO: прокрутка экрана 
-            cursor_y = screen_height - 1;
+        if (c == '\n') {
+            cursor_x = 15;
+            cursor_y += CHAR_HEIGHT * SCALE;
+            if (cursor_y + CHAR_HEIGHT * SCALE > fb_info.height) {
+                fb_scroll();
+            }
+            continue;
         }
 
-        if (c == '\n') {  // Обработка переноса строки
-            cursor_x = 0;          
-            cursor_y++;            
-        } else {
-            unsigned int pos = cursor_y * screen_width + cursor_x;
-            fb_write_cell(pos * 2, c, fg, bg);  
-            
-            cursor_x++;
-        }
+        draw_char(cursor_x, cursor_y, c, FG_COLOR, BG_COLOR, SCALE);
+        cursor_x += CHAR_WIDTH * SCALE;
 
-        if (cursor_x >= screen_width) {  // Если достигли конца строки
-            cursor_x = 0;
-            cursor_y++;
+        if (cursor_x + CHAR_WIDTH * SCALE > fb_info.width - 10) {
+            cursor_x = 15;
+            cursor_y += CHAR_HEIGHT * SCALE + 16;
+            if (cursor_y + CHAR_HEIGHT * SCALE > fb_info.height) {
+                fb_scroll();
+            }
         }
-
-        unsigned int cursor_pos = cursor_y * screen_width + cursor_x;
-        fb_move_cursor(cursor_pos);           
     }
 
     return len;
