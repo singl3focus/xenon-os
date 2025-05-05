@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "types.h"
 #include "bga.h"
+#include "draw_logo.h"
 
 extern uint8_t vbe_mode_info[256]; // Внешняя ссылка на данные VBE
 extern Framebuffer_Info fb_info;
@@ -29,7 +30,7 @@ void kmain() {
 
     // Пример рисования
     draw_rect(0, 0, fb_info.width, fb_info.height, 0x000000); // Очистка экрана
-    draw_rect(100, 100, 200, 150, 0xFF0000); // Красный прямоугольник
+    draw_logo();
 
     asm volatile("sti"); // Включить прерывания
 

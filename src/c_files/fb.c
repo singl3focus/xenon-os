@@ -1,10 +1,14 @@
 #include "fb.h"
 #include "io.h"
+#include "font.h"
 
 #define FB_COMMAND_PORT         0x3D4
 #define FB_DATA_PORT            0x3D5
 #define FB_HIGH_BYTE_COMMAND    14
 #define FB_LOW_BYTE_COMMAND     15
+
+#define MAX_COLS     1024 /* количество столбцов экрана               */
+#define MAX_ROWS     768 /* количество строк экрана                  */
 
 char *fb = (char *) 0x000B8000;
 
@@ -28,6 +32,42 @@ void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t
         for (uint32_t j = 0; j < width; j++) {
             draw_pixel(x + j, y + i, color);
         }
+    }
+}
+
+void draw_line(uint32_t x, uint32_t y, uint32_t width, uint32_t color){
+    for (uint32_t i = x; i < x + width; i++) {
+        draw_pixel(i, y, color);
+    } 
+}
+
+void draw_char(int x, int y, char c, uint32_t fg_color, uint32_t bg_color, int scale) {
+    for (int row = 0; row < 8; row++) {
+        uint8_t bits = font8x8_basic[(int)c][row];
+        for (int col = 0; col < 8; col++) {
+            uint32_t color = (bits & (1 << col)) ? fg_color : bg_color;
+            for (int dy = 0; dy < scale; dy++) {
+                for (int dx = 0; dx < scale; dx++) {
+                    draw_pixel(x + col * scale + dx, y + row * scale + dy, color);
+                }
+            }
+        }
+    }
+}
+
+void draw_string(int x, int y, const char* str, uint32_t fg_color, uint32_t bg_color, int scale) {
+    int cursor_x = x;
+    while (*str) {
+        draw_char(cursor_x, y, *str, fg_color, bg_color, scale);
+        cursor_x += 8*scale;  // фиксированная ширина символа
+        str++;
+    }
+}
+
+void delay(unsigned int count) {
+    for (volatile unsigned int i = 0; i < count; i++) {
+        // Простой пустой цикл — задержка
+        __asm__ __volatile__("nop");
     }
 }
 
