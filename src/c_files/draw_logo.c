@@ -19,11 +19,11 @@ void draw_logo(){
         delay(25000);
     }
     const uint8_t name_os[8] = {'X', 'e', 'n', 'o', 'n', ' ', 'O', 'S'};
-    int x_coord = 352;
+    int x_coord = 357;
     int i = 0;
     while (i < 8){
         draw_char(x_coord, 34, name_os[i], 0x00FFFFFF, 0x001F2126, 5);
-        delay(5000000);
+        if (name_os[i] != ' ') delay(5000000);
         x_coord += 40;
         i += 1;
     } 
