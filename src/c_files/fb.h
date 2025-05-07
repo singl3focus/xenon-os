@@ -22,6 +22,7 @@ void delay(unsigned int count);
 
 void fb_clear(uint32_t color);
 int fb_write(const char *buf, unsigned int len);
+void fb_cursor_blink_loop(unsigned int delay_count);
 
 void fb_init(uint64_t address, uint32_t pitch, uint32_t width, uint32_t height, uint8_t bpp);
 

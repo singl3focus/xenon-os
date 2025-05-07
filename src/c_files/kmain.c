@@ -35,5 +35,7 @@ void kmain() {
 
     asm volatile("sti"); // Включить прерывания
 
+    fb_cursor_blink_loop(15000000);
+    
     while(1);
 }

@@ -4,6 +4,9 @@
 
 Framebuffer_Info fb_info;
 
+static int cursor_visible = 0;
+static const int CURSOR_WIDTH = 2;
+static const uint32_t CURSOR_COLOR = 0xFFFFFF;  // Белый
 static uint32_t cursor_x = 15;
 static uint32_t cursor_y = 120;
 static const int CHAR_WIDTH = 8;
@@ -18,6 +21,25 @@ void fb_init(uint64_t address, uint32_t pitch, uint32_t width, uint32_t height, 
     fb_info.width = width;
     fb_info.height = height;
     fb_info.bpp = bpp;
+}
+
+void fb_toggle_cursor() {
+    if (cursor_visible) {
+        // Стираем курсор (рисуем фоновым цветом)
+        draw_rect(cursor_x, cursor_y, CURSOR_WIDTH, CHAR_HEIGHT * SCALE, BG_COLOR);
+        cursor_visible = 0;
+    } else {
+        // Рисуем курсор (вертикальная линия справа от текста)
+        draw_rect(cursor_x, cursor_y, CURSOR_WIDTH, CHAR_HEIGHT * SCALE, CURSOR_COLOR);
+        cursor_visible = 1;
+    }
+}
+
+void fb_cursor_blink_loop(unsigned int delay_count) {
+    while (1) {
+        fb_toggle_cursor();
+        delay(delay_count);
+    }
 }
 
 void draw_pixel(uint32_t x, uint32_t y, uint32_t color) {
@@ -105,25 +127,31 @@ int fb_write(const char *buf, unsigned int len) {
         char c = buf[i];
 
         if (c == '\n') {
+            if (cursor_visible) fb_toggle_cursor();
             cursor_x = 15;
             cursor_y += CHAR_HEIGHT * SCALE + 16;
             if (cursor_y + CHAR_HEIGHT * SCALE > fb_info.height) {
                 fb_scroll();
             }
+            fb_toggle_cursor();
             continue;
         }
 
+        if (cursor_visible) fb_toggle_cursor();
         draw_char(cursor_x, cursor_y, c, FG_COLOR, BG_COLOR, SCALE);
         cursor_x += CHAR_WIDTH * SCALE;
+        fb_toggle_cursor();
 
         if (cursor_x + CHAR_WIDTH * SCALE > fb_info.width - 10) {
+            if (cursor_visible) fb_toggle_cursor();
             cursor_x = 15;
             cursor_y += CHAR_HEIGHT * SCALE + 16;
             if (cursor_y + CHAR_HEIGHT * SCALE > fb_info.height) {
                 fb_scroll();
             }
+            fb_toggle_cursor();
         }
     }
-
     return len;
 }
+
