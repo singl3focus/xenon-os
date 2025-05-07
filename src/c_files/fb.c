@@ -106,7 +106,7 @@ int fb_write(const char *buf, unsigned int len) {
 
         if (c == '\n') {
             cursor_x = 15;
-            cursor_y += CHAR_HEIGHT * SCALE;
+            cursor_y += CHAR_HEIGHT * SCALE + 16;
             if (cursor_y + CHAR_HEIGHT * SCALE > fb_info.height) {
                 fb_scroll();
             }

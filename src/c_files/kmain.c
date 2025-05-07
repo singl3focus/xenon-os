@@ -30,7 +30,7 @@ void kmain() {
     fb_clear(0x001F2126); // Очистка экрана
     draw_logo();
 
-    fb_write("Welcome to Xenon OS!\n\n", 22);
+    fb_write("Welcome to Xenon OS!\n", 21);
     fb_write("Enter text:", 12);
 
     asm volatile("sti"); // Включить прерывания

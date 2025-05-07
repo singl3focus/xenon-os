@@ -4,7 +4,7 @@
 void keyboard_init(void);
 void keyboard_handler(void);
 
-extern int shift_pressed;
-extern int caps_lock_enabled;
+int keyboard_is_shift_pressed(void);
+int keyboard_is_capslock_enabled(void);
 
 #endif

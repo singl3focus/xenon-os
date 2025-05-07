@@ -81,3 +81,11 @@ void keyboard_handler(void) {
         }
     }
 }
+
+int keyboard_is_shift_pressed(void) {
+    return shift_pressed;
+}
+
+int keyboard_is_capslock_enabled(void) {
+    return caps_lock_enabled;
+}
