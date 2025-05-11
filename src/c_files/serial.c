@@ -9,6 +9,15 @@
 
 #define SERIAL_LINE_ENABLE_DLAB         0x80
 
+void serial_init() {
+    outb(0x3F8 + 1, 0x00); // Отключить прерывания
+    outb(0x3F8 + 3, 0x80); // Включить DLAB (доступ к делителям)
+    outb(0x3F8 + 0, 0x03); // Делитель скорости (низкий байт)
+    outb(0x3F8 + 1, 0x00); // Высокий байт делителя
+    outb(0x3F8 + 3, 0x03); // 8 бит данных, без паритета, 1 стоп-бит
+    outb(0x3F8 + 2, 0xC7); // Включить FIFO
+}
+
 /** serial_configure_baud_rate:
  *  Sets the speed of the data being sent.
  *

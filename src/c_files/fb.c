@@ -5,7 +5,7 @@
 #define FB_HIGH_BYTE_COMMAND    14
 #define FB_LOW_BYTE_COMMAND     15
 
-char *fb = (char *) 0x000B8000;
+char *fb = (char *) 0xC00B8000; // Виртуальный адрес
 
 unsigned int cursor_x = 0;  // Текущая позиция по X (номер символа в строке)
 unsigned int cursor_y = 0;  // Текущая позиция по Y (номер строки)

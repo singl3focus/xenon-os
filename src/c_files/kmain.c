@@ -5,7 +5,7 @@
 #include "keyboard.h"
 
 void kmain() {
-    fb_clear(); // * it's provide some not default work now, but in the future - we will fix it
+    // fb_clear(); // * it's provide some not default work now, but in the future - we will fix it
     // serial_init(); // not implemented
     
     init_idt();

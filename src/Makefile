@@ -1,11 +1,11 @@
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
+CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin\
          -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c \
-         -Iinclude  # Добавьте путь к заголовочным файлам, если нужно
+         -Iinclude  # Добавить путь к заголовочным файлам, если нужно
 
 # Линкер и флаги
-BOOTLOADER = boot_files/link.ld
+BOOTLOADER = binutils/link.ld
 LDFLAGS = -T $(BOOTLOADER) -melf_i386
 
 # Ассемблер и флаги
@@ -53,6 +53,9 @@ $(OBJECT_FILES)/%.o: $(C_FILES)/%.c
 # Правило для ассемблирования .s файлов
 $(OBJECT_FILES)/%.o: $(ASM_FILES)/%.s
 	$(ASM) $(ASMFLAGS) $< -o $@
+
+debug: os.iso
+	bochs -q -f configs/bochsrc.txt -rc debug.rc  
 
 # Очистка
 clean:

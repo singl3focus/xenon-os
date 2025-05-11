@@ -1,6 +1,8 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
+void serial_init();
+
 /** serial_write:
  *  Writes the contents of the buffer buf of length len to the serial port.
  *
@@ -8,5 +10,6 @@
  *  @param len The length of the buffer
  */
 int serial_write(char *buf, unsigned int len);
+
 
 #endif /* INCLUDE_SERIAL_H */
