@@ -1,11 +1,16 @@
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
+CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin\
          -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c \
          -Iinclude
 
 LD = ld
 LDFLAGS = -T boot_files/link.ld -melf_i386
+         -Iinclude  # Добавить путь к заголовочным файлам, если нужно
+
+# Линкер и флаги
+BOOTLOADER = binutils/link.ld
+LDFLAGS = -T $(BOOTLOADER) -melf_i386
 
 ASM = nasm
 ASMFLAGS = -f elf32
@@ -31,6 +36,10 @@ $(OBJECT_FILES)/%.o: $(C_FILES)/%.c
 $(OBJECT_FILES)/%.o: $(ASM_FILES)/%.s
 	$(ASM) $(ASMFLAGS) $< -o $@
 
+debug: os.iso
+	bochs -q -f configs/bochsrc.txt -rc debug.rc  
+
+# Очистка
 clean:
 	rm -rf $(OBJECT_FILES)/*.o os.iso bochslog.txt kernel.elf com1.out
 

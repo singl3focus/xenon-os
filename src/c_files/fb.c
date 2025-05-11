@@ -4,16 +4,7 @@
 
 Framebuffer_Info fb_info;
 
-static int cursor_visible = 0;
-static const int CURSOR_WIDTH = 2;
-static const uint32_t CURSOR_COLOR = 0xFFFFFF;  // Белый
-static uint32_t cursor_x = 15;
-static uint32_t cursor_y = 120;
-static const int CHAR_WIDTH = 8;
-static const int CHAR_HEIGHT = 8;
-static const int SCALE = 2;  // Масштаб шрифта (можно поменять)
-static const uint32_t FG_COLOR = 0xFFFFFF;  // Белый
-static const uint32_t BG_COLOR = 0x1F2126;  // Чёрный
+char *fb = (char *) 0xC00B8000; // Виртуальный адрес
 
 void fb_init(uint64_t address, uint32_t pitch, uint32_t width, uint32_t height, uint8_t bpp) {
     fb_info.address = address;
