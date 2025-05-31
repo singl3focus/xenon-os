@@ -4,20 +4,13 @@
 #define PIC1 0x20
 #define PIC2 0xA0
 
-/*
-#define PIC1_COMMAND 0x20
-#define PIC1_DATA    0x21
-#define PIC2_COMMAND 0xA0
-#define PIC2_DATA    0xA1
-*/
-
 void pic_remap() {
     // ICW1
     outb(PIC1, 0x11);
     outb(PIC2, 0x11);
     
     // ICW2
-    outb(PIC1 + 1, 0x20); // IRQ 0-7 -> INT 32-39 // Acknowledge interrupt to master PIC
+    outb(PIC1 + 1, 0x20); // IRQ 0-7 -> INT 32-39
     outb(PIC2 + 1, 0x28); // IRQ 8-15 -> INT 40-47
     
     // ICW3

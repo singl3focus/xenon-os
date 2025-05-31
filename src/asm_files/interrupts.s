@@ -3,16 +3,15 @@
 %macro ISR_NOERRCODE 1
 global isr%1
 isr%1:
-    push 0                 ; Фиктивный код ошибки (если его нет)
-    push %1                ; Номер исключения
-    jmp isr_common         ; Переход к общему обработчику
+    push 0
+    push %1
+    jmp isr_common
 %endmacro
 
 %macro ISR_ERRCODE 1
 global isr%1
 isr%1:
-    ; Код ошибки уже в стеке!
-    push %1                ; Номер исключения
+    push %1
     jmp isr_common
 %endmacro
 

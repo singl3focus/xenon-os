@@ -1,9 +1,8 @@
-global loader                   ; the entry symbol for ELF
+global loader
+extern kmain
+extern bga_init
 
-; Multiboot header constants
-MULTIBOOT_HEADER_MAGIC equ 0x1BADB002  ; magic number for Multiboot (позволяет загрузчику найти заголовок)
-MULTIBOOT_HEADER_FLAGS equ 0x00000003  ; flags: align modules on page boundaries
-MULTIBOOT_HEADER_CHECKSUM equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS) ; checksum, чтобы доказать, что мы являемся мультизагрузочной системой
+[BITS 32]
 
 ; ---- Multiboot2 header ----
 section .multiboot progbits alloc
@@ -21,87 +20,49 @@ align 16
 kernel_stack:
     resb 4096
 
-section .data    
-align 4
-gdt_start: 
-    dq 0x0000000000000000  ; Нулевой дескриптор
-gdt_code: 
-    dw 0xFFFF              ; Limit
-    dw 0x0000              ; Base (0-15)
-    db 0x00                ; Base (16-23)
-    db 0x9A                ; Access Byte
-    db 0xCF                ; Flags + Limit
-    db 0x00                ; Base (24-31)
-gdt_data: 
-    dw 0xFFFF              ; Limit
-    dw 0x0000              ; Base (0-15)
-    db 0x00                ; Base (16-23)
-    db 0x92                ; Access Byte
-    db 0xCF                ; Flags + Limit
-    db 0x00                ; Base (24-31)
+; ------------------------
+; GDT
+; ------------------------
+section .data
+gdt_start:
+    dq 0x0000000000000000
+
+gdt_code:
+    dw 0xFFFF
+    dw 0x0000
+    db 0x00
+    db 0x9A
+    db 0xCF
+    db 0x00
+
+gdt_data:
+    dw 0xFFFF
+    dw 0x0000
+    db 0x00
+    db 0x92
+    db 0xCF
+    db 0x00
+
 gdt_end:
 
 gdt_descriptor:
-    dw gdt_end - gdt_start - 1  ; Размер GDT
-    dd gdt_start - 0xC0000000; Физический адрес GDT
+    dw gdt_end - gdt_start - 1
+    dd gdt_start
 
-section .data
-align 4096
-pdt:
-    ; Identity mapping (0x00000000 -> 0x00000000)
-    dd 0x00000083 | (0 << 22)
-    times 768 - 1 dd 0
-    ; Higher-half: 0xC0000000 -> 0x100000 (1 МБ)
-    dd 0x00100083 | (0x40 << 22)  ; 0x40 = 0x100000 / 4MB
-    times 1024 - 768 - 1 dd 0
-
-enable_a20: ; now not used
-    in al, 0x92
-    or al, 2
-    out 0x92, al
-    ret
-
-section .text:  
-loader:                         ; the loader label (defined as entry point in linker script)
-    ; Загрузить GDT
+; ------------------------
+; TEXT (loader)
+; ------------------------
+section .text
+loader:
+    cli
     lgdt [gdt_descriptor]
 
-    ; Включить защищённый режим
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
-
-    jmp 0x08:flush_cs  ; Обновить CS
+    jmp 0x08:flush_cs
 
 flush_cs:
-    ; Обновить сегменты данных
-    mov ax, 0x10 ; Селектор сегмента данных
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-
-    ; Настройка пейджинга
-    mov eax, pdt - 0xC0000000  ; Физический адрес PDT
-    mov cr3, eax
-
-    mov eax, cr4
-    or eax, 0x00000010  ; PSE
-    mov cr4, eax
-
-    mov eax, cr0
-    or eax, 0x80000000  ; PG
-    mov cr0, eax
-
-    ;  Переход на виртуальный адрес
-    lea ecx, [higher_half] 
-    jmp ecx                ; jump to the label
-
-extern kmain
-
-higher_half:
-    ; Обновить сегменты данных
     mov ax, 0x10
     mov ds, ax
     mov ss, ax
@@ -109,7 +70,6 @@ higher_half:
     mov fs, ax
     mov gs, ax
 
-<<<<<<< HEAD
     ; Установим стек
     mov esp, kernel_stack + 4096
 
@@ -122,12 +82,3 @@ higher_half:
 hang:
     hlt
     jmp hang
-=======
-    ; Удалить Identity mapping через физический адрес PDT
-    ; mov eax, pdt  ; Физический адрес PDT
-    ; mov dword [eax], 0
-    ; invlpg [0]
-
-    mov esp, kernel_stack + KERNEL_STACK_SIZE
-    call kmain
->>>>>>> c54a78b (feat: [WIP] add implm of pagging, ref, and other (see changes for details))
