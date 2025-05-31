@@ -1,15 +1,9 @@
 global loader                   ; the entry symbol for ELF
 
-enable_a20:
-    in al, 0x92
-    or al, 2
-    out 0x92, al
-    ret
-
 ; Multiboot header constants
-MULTIBOOT_HEADER_MAGIC equ 0x1BADB002  ; magic number for Multiboot
+MULTIBOOT_HEADER_MAGIC equ 0x1BADB002  ; magic number for Multiboot (позволяет загрузчику найти заголовок)
 MULTIBOOT_HEADER_FLAGS equ 0x00000003  ; flags: align modules on page boundaries
-MULTIBOOT_HEADER_CHECKSUM equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+MULTIBOOT_HEADER_CHECKSUM equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS) ; checksum, чтобы доказать, что мы являемся мультизагрузочной системой
 
 ; ---- Multiboot2 header ----
 section .multiboot progbits alloc
@@ -28,7 +22,6 @@ kernel_stack:
     resb 4096
 
 section .data    
-; GDT
 align 4
 gdt_start: 
     dq 0x0000000000000000  ; Нулевой дескриптор
@@ -61,6 +54,12 @@ pdt:
     ; Higher-half: 0xC0000000 -> 0x100000 (1 МБ)
     dd 0x00100083 | (0x40 << 22)  ; 0x40 = 0x100000 / 4MB
     times 1024 - 768 - 1 dd 0
+
+enable_a20: ; now not used
+    in al, 0x92
+    or al, 2
+    out 0x92, al
+    ret
 
 section .text:  
 loader:                         ; the loader label (defined as entry point in linker script)

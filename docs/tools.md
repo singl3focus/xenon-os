@@ -199,3 +199,143 @@ Idx Name          Size      VMA       LMA       File off  Algn
   0 .multiboot    0000000c  00100000  00100000  00001000  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
 ```                  
+
+## Подготовка необходимых инструментов
+
+### GNU tools
+
+```bash
+export TARGET=i686-elf
+export PREFIX=/usr/local/i686-elf
+```
+
+```bash
+wget https://ftp.gnu.org/gnu/binutils/binutils-2.44.tar.gz
+tar -xf binutils-2.44.tar.gz
+```
+
+```bash
+./binutils-2.44/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --disable-werror
+```
+
+```bash
+make
+make install
+
+ls $PREFIX/bin/i686-elf-*
+# Должны быть файлы: ar, as, ld, objdump и др.
+```
+
+```bash
+sudo apt install build-essential flex bison libgmp-dev libmpfr-dev libmpc-dev texinfo
+```
+
+```bash
+wget https://ftp.gnu.org/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.gz
+tar -xf gcc-13.2.0.tar.gz
+```
+
+```bash
+./gcc-13.2.0/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers
+```
+
+```bash
+make all-gcc all-target-libgcc
+make install-gcc install-target-libgcc
+
+$PREFIX/bin/i686-elf-gcc --version
+# Выовод должен быть таким: i686-elf-gcc (GCC) 13.2.0
+```
+
+- Добавьте созданные инструменты в $PATH, чтобы их можно было использовать по названию (без указания полного пути):
+```bash
+nano ~/.bashrc # в конец файла добавить export PATH=$PATH:/usr/local/i686-elf/bin
+source ~/.bashrc # перезагрузить конфигурацию
+echo $PATH # вывод должен содержать /usr/local/i686-elf/bin
+```
+
+### GRUB
+
+```bash
+git clone https://github.com/vertis/objconv.git
+cd ./objconv/
+```
+
+fix it:
+1. src/coff.h
+```cpp
+// Before:
+#define PE_SCN_MEM_WRITE        0x80000000
+
+// After:
+#define PE_SCN_MEM_WRITE        0x80000000U  // Add suffix U for unsigned
+```
+
+2. src/disasm1.cpp
+```cpp
+// Before:
+SFunctionRecord fun = {Section, 0, Sections[Section].TotalSize, 0, 0};
+
+// After:
+SFunctionRecord fun = {static_cast<int32>(Section), 0, Sections[Section].TotalSize, 0, 0};
+```
+
+3. src/disasm2.cpp
+```cpp
+// Before:
+{0x80000000, "MVEX option bits not allowed here"}
+
+// After:
+{0x80000000U, "MVEX option bits not allowed here"}  // Добавляем U
+```
+
+4. src/library.cpp
+```cpp
+// Before:
+sprintf(SymTab.FileSize, "%u", Index3Size);
+
+// After:
+snprintf(SymTab.FileSize, sizeof(SymTab.FileSize), "%u", Index3Size);  // Безопасная версия
+```
+
+we use g++ version 13.3.0
+
+```bash
+g++ -o objconv -O2 src/*.cpp -Wno-narrowing
+cd ..
+```
+
+```bash
+git clone --recurse-submodules --depth 1 git://git.savannah.gnu.org/grub.git
+cd grub
+```
+
+```bash
+./bootstrap # или ./autogen.sh
+
+mkdir ../build-grub
+cd ../build-grub
+
+../grub/configure \
+  --disable-werror \
+  --prefix=$HOME/opt/grub \
+  TARGET_CC=$TARGET-gcc \
+  TARGET_OBJCOPY=$TARGET-objcopy \
+  TARGET_STRIP=$TARGET-strip \
+  TARGET_NM=$TARGET-nm \
+  TARGET_RANLIB=$TARGET-ranlib \
+  --target=$TARGET
+```
+
+```bash
+sudo apt install gawk, xorriso, mtools
+```
+
+```bash
+sudo update-alternatives --set awk /usr/bin/gawk
+
+make
+make install
+```
+
+- Аналогично устанавливаем в PATH: ```/home/focus/opt/grub/sbin```, ```/home/focus/opt/grub/bin```

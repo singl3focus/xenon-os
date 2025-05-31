@@ -9,9 +9,49 @@
 
 ...
 
+## Project structure
+
+```
+./
+├── arch
+│   └── i386
+├── configs (grub.cfg, etc)
+├── docs (tech, tools)
+├── kernel
+├── libc
+└── src
+```
+
 ## Начало работы
 
 ...
+
+## Usage
+1. Clone the project:
+```git clone https://github.com/singl3focus/xenon-os```
+
+2. Change dir and run scripts:
+```./make_clear.sh && ./make.sh```
+
+TODO (ignore it now):
+```
+### Makefile 
+
+Make command form:
+```
+[target]: [dependes]
+       [command]
+```
+
+1. For collect ISO and start it to Bochs emulator: \
+```make run```
+```
+
+3. Start OS with emulation:
+   - QEMU: ```qemu-system-i386 -cdrom xenon-os.iso```
+   - BOCHS: ```TODO```
+
+> Use it!
 
 
 ### Git navigation
