@@ -1,5 +1,5 @@
-#ifndef INCLUDE_IO_H
-#define INCLUDE_IO_H
+#ifndef IO_H
+#define IO_H
 
 /** outb:
  *  Sends the given data to the given I/O port.
@@ -16,5 +16,9 @@ void outb(unsigned short port, unsigned char data);
  *  @return      The read byte
  */
 unsigned char inb(unsigned short port);
+
+void outw(unsigned short port, unsigned short data);
+
+unsigned short inw(unsigned short port);
 
 #endif /* INCLUDE_IO_H */

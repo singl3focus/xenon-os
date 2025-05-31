@@ -1,3 +1,17 @@
+# IDE
+.vscode
 
-# logs
-src/bochslog.txt
+# Completed data
+*.o
+*.iso
+*.out
+*.elf
+
+# Logs
+bochslog.txt
+
+# Configs
+/configs/*.txt
+
+# Temp
+**/*temp*/

@@ -1,5 +1,9 @@
 global outb
 global inb
+global outw
+global inw
+global bga_write_register
+global bga_read_register
 
 ; outb - send a byte to an I/O port
 ; stack: [esp + 8] the data byte
@@ -20,3 +24,21 @@ inb:
     mov dx, [esp + 4]    ; move the address of the I/O port to the dx register
     in  al, dx           ; read a byte from the I/O port and store it in the al register
     ret                  ; return the read byte
+
+global load_idt
+
+load_idt:
+    mov eax, [esp+4]
+    lidt [eax]
+    ret
+
+outw:
+    mov dx, [esp + 4]
+    mov ax, [esp + 8]
+    out dx, ax
+    ret
+
+inw:
+    mov dx, [esp + 4]
+    in ax, dx
+    ret
