@@ -2,8 +2,6 @@ global outb
 global inb
 global outw
 global inw
-global bga_write_register
-global bga_read_register
 
 ; outb - send a byte to an I/O port
 ; stack: [esp + 8] the data byte

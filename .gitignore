@@ -6,6 +6,8 @@
 *.iso
 *.out
 *.elf
+/build
+/iso
 
 # Logs
 bochslog.txt

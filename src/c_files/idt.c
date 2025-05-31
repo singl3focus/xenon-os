@@ -5,8 +5,6 @@
 struct idt_entry idt[256];
 struct idt_ptr idtp;
 
-extern void load_idt(struct idt_ptr *ptr);
-
 void idt_set_gate(uint8_t num, uint32_t offset, uint16_t sel, uint8_t flags) {
     idt[num].offset_low = offset & 0xFFFF;
     idt[num].selector = sel;

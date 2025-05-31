@@ -1,7 +1,7 @@
 #ifndef IDT_H
 #define IDT_H
 
-#include "types.h"
+#include <stdint.h>
 
 struct idt_entry {
     uint16_t offset_low;
@@ -17,5 +17,8 @@ struct idt_ptr {
 } __attribute__((packed));
 
 void init_idt();
+void idt_set_gate(uint8_t num, uint32_t offset, uint16_t sel, uint8_t flags);
+
+extern void load_idt(struct idt_ptr *ptr);
 
 #endif
