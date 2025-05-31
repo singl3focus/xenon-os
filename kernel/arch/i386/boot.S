@@ -23,6 +23,8 @@ stack_top:
 _start:
     mov $stack_top, %esp
 
-    call kernel_main
+    call gdt_init
+
+	call kernel_main
 
     .size _start, . - _start
