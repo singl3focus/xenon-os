@@ -22,14 +22,30 @@ static void simple_itoa(uint32_t num, char* str) {
 void isr_handler(struct regs *r) {
     terminal_writestring("Exception: ");
     char buf[10];
-    simple_itoa(r->int_no, buf); // TODO: change
+    simple_itoa(r->int_no, buf); // TODO change
     
     terminal_writestring(buf);
     terminal_putchar('\n');
     
-    // Для критических ошибок - остановка системы
-    if(r->int_no == 8 || r->int_no == 13 || r->int_no == 14) {
+    switch (r->int_no) {
+    case 14: // Page Fault
+        uint32_t fault_addr;
+        asm volatile("mov %%cr2, %0" : "=r" (fault_addr));
+        
+        terminal_writestring("Page fault at ");
+        char buf[16];
+        simple_itoa(fault_addr, buf);
+        terminal_writestring(buf);
+        terminal_putchar('\n');
+        
+        // TODO добавить обработку
+        for(;;);
+        break;
+    case 8:
+    case 13:
+        // Для критических ошибок - остановка системы
         terminal_writestring("System Halted!\n");
         for(;;) asm volatile("hlt");
+        break;
     }
 }

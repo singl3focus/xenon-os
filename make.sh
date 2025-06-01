@@ -36,6 +36,8 @@ $ASM ${ARCH_DIR}/io.S -o ${BUILD_DIR}/io.o
 $ASM ${ARCH_DIR}/gdt_flush.S -o ${BUILD_DIR}/gdt_flush.o
 $ASM ${ARCH_DIR}/idt_load.S -o ${BUILD_DIR}/idt_load.o
 $ASM ${ARCH_DIR}/interrupts.S -o ${BUILD_DIR}/interrupts.o
+$ASM ${ARCH_DIR}/mmu.S -o ${BUILD_DIR}/mmu.o
+$ASM ${ARCH_DIR}/multiboot_header.S -o ${BUILD_DIR}/multiboot_header.o
 
 # Компиляция ядра и драйверов
 echo "Компиляция ядра и драйверов..."
@@ -49,6 +51,7 @@ KERNEL_SOURCES=(
     "${ARCH_DIR}/isr.c"
     "${ARCH_DIR}/keyboard.c"
     "${ARCH_DIR}/pic.c"
+    "${ARCH_DIR}/paging.c"
 )
 
 for source in "${KERNEL_SOURCES[@]}"; do
@@ -84,6 +87,8 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/gdt_flush.o \
     ${BUILD_DIR}/idt_load.o \
     ${BUILD_DIR}/interrupts.o \
+    ${BUILD_DIR}/mmu.o \
+    ${BUILD_DIR}/multiboot_header.o \
     ${BUILD_DIR}/kernel.o \
     ${BUILD_DIR}/serial.o \
     ${BUILD_DIR}/tty.o \
@@ -93,6 +98,7 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/isr.o \
     ${BUILD_DIR}/keyboard.o \
     ${BUILD_DIR}/pic.o \
+    ${BUILD_DIR}/paging.o \
     ${BUILD_DIR}/printf.o \
     ${BUILD_DIR}/putchar.o \
     ${BUILD_DIR}/puts.o \
@@ -106,7 +112,7 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
 
 # Проверка Multiboot
 echo "Проверка Multiboot..."
-if $GRUB --is-x86-multiboot ${BUILD_DIR}/${OS_NAME}.bin; then
+if $GRUB --is-x86-multiboot2 ${BUILD_DIR}/${OS_NAME}.bin; then
     echo "Multiboot-совместимость подтверждена"
 else
     echo "ОШИБКА: Файл не соответствует стандарту Multiboot!"
@@ -120,6 +126,6 @@ cp ${BUILD_DIR}/${OS_NAME}.bin ${ISO_DIR}/boot/
 cp configs/grub.cfg ${ISO_DIR}/boot/grub/
 
 echo "Сборка ISO..."
-${GRUB_BUILDER} -o ${OS_NAME}.iso ${ISO_DIR}
+${GRUB_BUILDER} --modules="multiboot2" -o ${OS_NAME}.iso ${ISO_DIR}
 
 echo "Сборка успешно завершена! Образ: xenon-os.iso"

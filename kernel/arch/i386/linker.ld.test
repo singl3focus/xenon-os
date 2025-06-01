@@ -1,0 +1,45 @@
+ENTRY(_start)
+OUTPUT_FORMAT(elf32-i386)
+OUTPUT_ARCH(i386)
+
+kernel_phys_base = 0x00100000;
+kernel_virt_base = 0xC0000000;
+
+SECTIONS {
+    /* Заголовок multiboot должен быть в первых 8 КБ и в самом начале файла */
+    . = kernel_phys_base;
+
+    .multiboot : AT(kernel_phys_base) {
+        KEEP(*(.multiboot))
+    }
+
+    /* Обязательно выровнять . = после multiboot на 4K */
+    . = ALIGN(4K);
+
+    /* Переключаемся на виртуальный адрес */
+    /* . += kernel_virt_base; */
+
+    .text ALIGN(4K) : AT(ADDR(.text) - kernel_virt_base) {
+        *(.text)
+    }
+
+    .rodata ALIGN(4K) : AT(ADDR(.rodata) - kernel_virt_base) {
+        *(.rodata*)
+    }
+
+    .data ALIGN(4K) : AT(ADDR(.data) - kernel_virt_base) {
+        *(.data)
+    }
+
+    .bss ALIGN(4K) : AT(ADDR(.bss) - kernel_virt_base) {
+        *(COMMON)
+        *(.bss)
+    }
+
+    /DISCARD/ : {
+        *(.comment)
+        *(.note.gnu.build-id)
+    }
+
+    kernel_end = .;
+}
