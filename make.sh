@@ -106,7 +106,7 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
 
 # Проверка Multiboot
 echo "Проверка Multiboot..."
-if $GRUB --is-x86-multiboot ${BUILD_DIR}/${OS_NAME}.bin; then
+if $GRUB --is-x86-multiboot2 ${BUILD_DIR}/${OS_NAME}.bin; then
     echo "Multiboot-совместимость подтверждена"
 else
     echo "ОШИБКА: Файл не соответствует стандарту Multiboot!"
