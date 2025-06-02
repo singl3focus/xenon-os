@@ -56,6 +56,7 @@ KERNEL_SOURCES=(
     "${ARCH_DIR}/timer.c"
     "${ARCH_DIR}/ata.c"
     "${ARCH_DIR}/fat16.c"
+    "${ARCH_DIR}/syscall.c"
 )
 
 for source in "${KERNEL_SOURCES[@]}"; do
@@ -112,6 +113,7 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/timer.o \
     ${BUILD_DIR}/ata.o \
     ${BUILD_DIR}/fat16.o \
+    ${BUILD_DIR}/syscall.o \
     ${BUILD_DIR}/printf.o \
     ${BUILD_DIR}/putchar.o \
     ${BUILD_DIR}/puts.o \

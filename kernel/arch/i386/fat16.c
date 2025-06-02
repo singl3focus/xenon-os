@@ -5,6 +5,9 @@
 #include "ata.h"
 #include "fat16.h"
 
+#define MAX_OPEN_FILES 16
+static fat16_open_file_t g_open_files[MAX_OPEN_FILES];
+
 static fat16_boot_sector_t g_bs;
 static uint32_t g_partition_start;
 static uint32_t g_fat_start;
@@ -27,11 +30,6 @@ void fat16_init(uint32_t partition_start) {
     g_fat_start = partition_start + g_bs.reserved_sectors;
     g_root_dir_start = g_fat_start + (g_bs.fat_copies * g_bs.sectors_per_fat);
     g_data_start = g_root_dir_start + ((g_bs.root_entries * 32) / g_bs.bytes_per_sector);
-}
-
-int fat16_open(const char* path, void* buffer) {
-    // Пока просто заглушка
-    return -1;
 }
 
 void fat16_list_root() {
@@ -70,8 +68,6 @@ void fat16_list_root() {
     }
 }
 
-#include <string.h>
-
 int fat16_find_file(const char* name, fat16_dir_entry_t* out_entry) {
     uint16_t entries = g_bs.root_entries;
     uint16_t entries_per_sector = g_bs.bytes_per_sector / sizeof(fat16_dir_entry_t);
@@ -109,6 +105,32 @@ int fat16_find_file(const char* name, fat16_dir_entry_t* out_entry) {
     return 0;
 }
 
+int fat16_open(const char* path) {
+    fat16_dir_entry_t entry;
+    if (!fat16_find_file(path, &entry)) {
+        return -1; // Не найден
+    }
+
+    for (int i = 0; i < MAX_OPEN_FILES; i++) {
+        if (!g_open_files[i].used) {
+            g_open_files[i].used = 1;
+            g_open_files[i].entry = entry;
+            g_open_files[i].position = 0;
+            g_open_files[i].current_cluster = entry.start_cluster;
+            return i;
+        }
+    }
+
+    return -1; // Нет свободных дескрипторов
+}
+
+void fat16_close(int fd) {
+    if (fd >= 0 && fd < MAX_OPEN_FILES) {
+        g_open_files[fd].used = 0;
+    }
+}
+
+
 uint16_t fat16_get_next_cluster(uint16_t cluster) {
     uint32_t fat_offset = cluster * 2;
     uint32_t fat_sector = g_fat_start + (fat_offset / g_bs.bytes_per_sector);
@@ -121,25 +143,54 @@ uint16_t fat16_get_next_cluster(uint16_t cluster) {
 }
 
 
-int fat16_read_file(const fat16_dir_entry_t* entry, void* buffer, uint32_t max_size) {
-    uint16_t cluster = entry->start_cluster;
-    uint32_t file_size = entry->file_size;
-    uint8_t* buf = (uint8_t*)buffer;
+int fat16_read(int fd, void* buf, size_t size) {
+    if (fd < 0 || fd >= MAX_OPEN_FILES || !g_open_files[fd].used)
+        return -1;
 
+    fat16_open_file_t* file = &g_open_files[fd];
+    uint8_t* out = (uint8_t*)buf;
+
+    uint32_t file_size = file->entry.file_size;
+    uint32_t bytes_left = file_size - file->position;
+    if (size > bytes_left) size = bytes_left;
+
+    uint32_t cluster = file->current_cluster;
+    uint32_t offset = file->position;
     uint32_t bytes_read = 0;
 
-    while (cluster < 0xFFF8 && bytes_read < file_size && bytes_read < max_size) {
+    while (size > 0 && cluster < 0xFFF8) {
         uint32_t cluster_sector = g_data_start + ((cluster - 2) * g_bs.sectors_per_cluster);
+        uint32_t cluster_offset = offset % (g_bs.bytes_per_sector * g_bs.sectors_per_cluster);
+        uint32_t start_sector = cluster_sector + (cluster_offset / g_bs.bytes_per_sector);
+        uint32_t sector_offset = cluster_offset % g_bs.bytes_per_sector;
 
-        for (int i = 0; i < g_bs.sectors_per_cluster; i++) {
-            ata_read_sectors(cluster_sector + i, 1, buf);
-            buf += g_bs.bytes_per_sector;
-            bytes_read += g_bs.bytes_per_sector;
-            if (bytes_read >= file_size || bytes_read >= max_size) break;
+        uint8_t sector[512];
+        ata_read_sectors(start_sector, 1, sector);
+
+        uint32_t to_copy = g_bs.bytes_per_sector - sector_offset;
+        if (to_copy > size) to_copy = size;
+
+        memcpy(out, sector + sector_offset, to_copy);
+        out += to_copy;
+        bytes_read += to_copy;
+        offset += to_copy;
+        size -= to_copy;
+
+        // Переход на следующий кластер при необходимости
+        if ((offset % (g_bs.bytes_per_sector * g_bs.sectors_per_cluster)) == 0) {
+            cluster = fat16_get_next_cluster(cluster);
+            file->current_cluster = cluster;
         }
-
-        cluster = fat16_get_next_cluster(cluster);
     }
 
+    file->position += bytes_read;
     return bytes_read;
+}
+
+int fat16_read_file(const char* path, void* buf, size_t max_size) {
+    int fd = fat16_open(path);
+    if (fd < 0) return -1;
+    int len = fat16_read(fd, buf, max_size);
+    fat16_close(fd);
+    return len;
 }

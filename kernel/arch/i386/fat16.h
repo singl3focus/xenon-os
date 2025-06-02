@@ -38,8 +38,23 @@ typedef struct {
 } __attribute__((packed)) fat16_dir_entry_t;
 #pragma pack(pop)
 
+typedef struct {
+    int used;                          // занят ли слот
+    fat16_dir_entry_t entry;          // копия заголовка файла
+    uint32_t position;                // текущая позиция
+    uint16_t current_cluster;         // текущий кластер
+} fat16_open_file_t;
+
 void fat16_init(uint32_t partition_start);
-int fat16_open(const char* path, void* buffer);
 void fat16_list_root();
+
+int fat16_find_file(const char* name, fat16_dir_entry_t* out_entry);
+
+int fat16_open(const char* path);
+int fat16_read(int fd, void* buf, size_t size);
+void fat16_close(int fd);
+uint16_t fat16_get_next_cluster(uint16_t cluster);
+
+int fat16_read_file(const char* path, void* buf, size_t max_size);
 
 #endif
