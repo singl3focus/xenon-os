@@ -27,4 +27,22 @@ void serial_put_hex(uint32_t num);
 // Вывод числа в десятичном формате
 void serial_put_dec(uint32_t num);
 
+// Инициализация COM1
+void serial_init();
+
+// Вывод строки
+int serial_write(const char *buf, unsigned int len);
+
+// Вывод одного символа
+void serial_putc(char c);
+
+// Вывод строки (удобная обёртка)
+void serial_puts(const char *str);
+
+// Вывод числа в шестнадцатеричном формате
+void serial_put_hex(uint32_t num);
+
+// Вывод числа в десятичном формате
+void serial_put_dec(uint32_t num);
+
 #endif

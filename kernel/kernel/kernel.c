@@ -82,6 +82,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     fb_write("Welcome to Xenon OS!\n", 21);
     fb_write("Enter text:", 12);
 
+	// Тесты
 	asm volatile("int $0x00");
 
 	fb_cursor_blink_loop();
