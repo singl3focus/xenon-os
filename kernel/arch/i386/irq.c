@@ -3,23 +3,14 @@
 #include "irq.h"
 #include "pic.h"
 #include "keyboard.h"
+#include "timer.h"
 
 #define PIC2_CMD 0xA0
 #define PIC1_CMD 0x20
 
-static void (*irq_routines[16])(void) = { 0 };
-
-void irq_register_handler(uint8_t irq, void (*handler)(void)) {
-    irq_routines[irq] = handler;
-}
-
 // Обработчик аппаратных прерываний
 void irq_handler(struct regs regs) {
     uint8_t irq = regs.int_no - 32;
-    
-    if (irq_routines[irq]) {
-        irq_routines[irq]();
-    }
 
     // Подтверждение прерывания в PIC
     if (irq >= 8) {
@@ -31,6 +22,7 @@ void irq_handler(struct regs regs) {
     switch (irq) {
         case 0:
             // Обработка таймера (IRQ0)
+            timer_handler();
             break;
         case 1: // Обработка клавиатуры (IRQ1)
             keyboard_handler();

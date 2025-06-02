@@ -32,6 +32,5 @@ struct regs {
 
 // Объявление бработчика
 void irq_handler(struct regs regs);
-void irq_register_handler(uint8_t irq, void (*handler)(void));
 
 #endif

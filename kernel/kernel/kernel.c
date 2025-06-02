@@ -44,7 +44,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 	serial_puts("IDT initialized\n");
 
 	// Регистрируем IRQ обработчики
-	timer_init(2000);
+	timer_init();
 	keyboard_init();
 	serial_puts("Keyboard initialized\n");
 
