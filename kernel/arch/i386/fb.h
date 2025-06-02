@@ -23,6 +23,12 @@ void fb_clear(uint32_t color);
 int fb_write(const char *buf, unsigned int len);
 void fb_cursor_blink_loop(void);
 void fb_backspace(void);
+void fb_enter(void);
+void fb_insert_char(char c, int was_at_end);
+void fb_move_cursor_right(void);
+void fb_move_cursor_left(void);
+void fb_move_cursor_up(void);
+void fb_move_cursor_down(void);
 
 void fb_init(uint64_t address, uint32_t pitch, uint32_t width, uint32_t height, uint8_t bpp);
 

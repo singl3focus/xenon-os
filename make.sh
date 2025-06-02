@@ -73,6 +73,7 @@ LIBC_SOURCES=(
     "${LIBC_DIR}/string/memmove.c"
     "${LIBC_DIR}/string/memset.c"
     "${LIBC_DIR}/string/strlen.c"
+    "${LIBC_DIR}/string/strcpy.c"
 )
 
 for source in "${LIBC_SOURCES[@]}"; do
@@ -112,6 +113,7 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/memmove.o \
     ${BUILD_DIR}/memset.o \
     ${BUILD_DIR}/strlen.o \
+    ${BUILD_DIR}/strcpy.o \
     -lgcc
 
 # Проверка Multiboot
