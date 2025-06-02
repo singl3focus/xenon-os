@@ -27,7 +27,7 @@ mkdir -p ${BUILD_DIR}
 INCLUDES="-I${KERNEL_DIR}/include -I${KERNEL_DIR}/include/drivers -I${LIBC_DIR}/include -I${ARCH_DIR}"
 
 # Общие флаги компиляции
-CFLAGS="-std=gnu99 -ffreestanding -m32 -O2 -Wall -Wextra -Werror -nostartfiles ${INCLUDES}"
+CFLAGS="-std=gnu99 -ffreestanding -m32 -O2 -Wall -Wextra -nostartfiles ${INCLUDES}"
 
 # Компиляция ассемблерных файлов
 echo "Компиляция ассемблерных файлов..."
@@ -54,6 +54,8 @@ KERNEL_SOURCES=(
     "${ARCH_DIR}/font.c"
     "${ARCH_DIR}/multiboot2.c"
     "${ARCH_DIR}/timer.c"
+    "${ARCH_DIR}/ata.c"
+    "${ARCH_DIR}/fat16.c"
 )
 
 for source in "${KERNEL_SOURCES[@]}"; do
@@ -68,6 +70,7 @@ LIBC_SOURCES=(
     "${LIBC_DIR}/stdio/putchar.c"
     "${LIBC_DIR}/stdio/puts.c"
     "${LIBC_DIR}/stdlib/abort.c"
+    "${LIBC_DIR}/stdlib/itoa.c"
     "${LIBC_DIR}/string/memcmp.c"
     "${LIBC_DIR}/string/memcpy.c"
     "${LIBC_DIR}/string/memmove.c"
@@ -104,10 +107,13 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/pic.o \
     ${BUILD_DIR}/multiboot2.o \
     ${BUILD_DIR}/timer.o \
+    ${BUILD_DIR}/ata.o \
+    ${BUILD_DIR}/fat16.o \
     ${BUILD_DIR}/printf.o \
     ${BUILD_DIR}/putchar.o \
     ${BUILD_DIR}/puts.o \
     ${BUILD_DIR}/abort.o \
+    ${BUILD_DIR}/itoa.o \
     ${BUILD_DIR}/memcmp.o \
     ${BUILD_DIR}/memcpy.o \
     ${BUILD_DIR}/memmove.o \

@@ -4,6 +4,7 @@
 #include "pic.h"
 #include "keyboard.h"
 #include "timer.h"
+#include "ata.h"
 
 #define PIC2_CMD 0xA0
 #define PIC1_CMD 0x20
@@ -27,6 +28,9 @@ void irq_handler(struct regs regs) {
         case 1: // Обработка клавиатуры (IRQ1)
             keyboard_handler();
             break;
+        case 14:
+            ata_handler();
+            break; 
         // ... добавить обработку других IRQ ...
         default:
             break;

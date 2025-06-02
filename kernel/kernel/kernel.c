@@ -1,9 +1,14 @@
 #include <kernel/tty.h>
 #include <kernel/drivers/serial.h>
+#include <kernel/drivers/io.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "../../arch/i386/gdt.h"
 #include "../../arch/i386/idt.h"
 #include "../../arch/i386/pic.h"
+#include "../../arch/i386/ata.h"
+#include "../../arch/i386/fat16.h"
 #include "../../arch/i386/keyboard.h"
 #include "../../arch/i386/fb.h"
 #include "../../arch/i386/draw_logo.h"
@@ -14,7 +19,7 @@
 #error "You are not using a cross-compiler, you will most certainly run into trouble"
 #endif
 
-/* This tutorial will only work for the 32-bit ix86 targets. */
+/* OS will only work for the 32-bit ix86 targets. */
 #if !defined(__i386__)
 #error "This kernel needs to be compiled with a ix86-elf compiler"
 #endif
@@ -31,6 +36,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 
     // Вывод параметров Multiboot
     serial_puts("Multiboot magic: ");
+	// if(magic != 0x36d76289) { ... }
     serial_put_hex(magic);
     serial_puts("\nMultiboot addr: ");
     serial_put_hex(addr);
@@ -81,11 +87,70 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 
     fb_write("Welcome to Xenon OS!\n", 21);
     fb_write("Enter text:", 12);
-
-	// Тесты
-	asm volatile("int $0x00");
-
+    
 	fb_cursor_blink_loop();
 
+    // Чтение MBR
+    uint8_t __attribute__((aligned(2))) mbr[512];
+	check_drive(); // Перед чтением MBR
+    ata_read_sectors(0, 1, mbr);
+	serial_puts("ATA read sectors\n");
+
+
 	for (;;) __asm__ volatile("hlt");
+    // Проверка сигнатуры MBR
+    if (mbr[510] == 0x55 && mbr[511] == 0xAA) {
+        // Поиск раздела FAT16 в таблице разделов
+        uint32_t fat_partition_lba = 0;
+        int found = 0;
+        
+        for (int i = 0x1BE; i <= 0x1EE; i += 16) {
+            if (mbr[i+4] == 0x04 || mbr[i+4] == 0x06 || mbr[i+4] == 0x0E) {
+                fat_partition_lba = *(uint32_t*)(mbr + i + 8);
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+			serial_puts("FAT16 partition not found in MBR\n");
+            return;
+        }
+        
+        char buf[32];
+        itoa(fat_partition_lba, buf, 10);
+        serial_puts("FAT16 partition found at LBA: ");
+        serial_puts(buf);
+        serial_puts("\n");
+        
+        fat16_init(fat_partition_lba);
+    } else {
+        // Проверка, является ли весь диск FAT16 разделом
+        fat16_boot_sector_t bs;
+        memcpy(&bs, mbr, sizeof(bs));
+        
+        // Проверка сигнатуры через прямой доступ к буферу
+        if (mbr[510] == 0x55 && mbr[511] == 0xAA) {
+            serial_puts("Full disk FAT16 partition\n");
+            fat16_init(0);
+        } else {
+            serial_puts("Invalid disk signature\n");
+            return;
+        }
+    }
+    
+    serial_puts("FAT16 initialized\n");
+    serial_puts("Root directory:\n");
+    fat16_list_root();
+    
+    for(;;) asm volatile("hlt");
+}
+
+void check_drive() {
+    outb(ATA_DRIVE_SEL, 0xA0);
+    if (inb(ATA_STATUS) == 0xFF) {
+        serial_puts("No IDE drive detected!\n");
+        return;
+    }
+    // TODO остальные проверки ...
 }

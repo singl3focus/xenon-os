@@ -41,8 +41,21 @@ stack_top:
 _start:
     mov $stack_top, %esp
 
-    push %ebx      # address of Multiboot2 structure
-	push %eax      # magic
+    # Сохранение мультибутовых регистров в каллер-сейв регистрах
+    mov %eax, %esi  # ESI = magic number
+    mov %ebx, %edi  # EDI = multiboot info address
+
+    # Инициализация GDT
+    call gdt_init
+
+    # Передача аргументов в kernel_main
+    push %edi       # Второй аргумент: адрес информации (uint32_t addr)
+    push %esi       # Первый аргумент: магическое число (uint32_t magic)
     call kernel_main
 
-    .size _start, . - _start
+    # Зацикливание, если kernel_main вернется
+    cli
+1:  hlt
+    jmp 1b
+
+.size _start, . - _start

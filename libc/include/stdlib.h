@@ -5,5 +5,6 @@
 
 __attribute__((__noreturn__))
 void abort(void);
+void itoa(int value, char* str, int base);
 
 #endif
