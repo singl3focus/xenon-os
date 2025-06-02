@@ -140,8 +140,35 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     }
     
     serial_puts("FAT16 initialized\n");
-    serial_puts("Root directory:\n");
+    terminal_writestring("Root directory:\n");
     fat16_list_root();
+
+	// ТЕСТ:
+	fat16_dir_entry_t file_entry;
+	if (fat16_find_file("TEST.TXT", &file_entry)) {
+		serial_puts("\nFound TEST.TXT, size: ");
+		char buf[16];
+		itoa(file_entry.file_size, buf, 10);
+		serial_puts(buf);
+		serial_puts(" bytes\n");
+
+		uint8_t file_buf[1024]; // Можно больше, если нужно
+		int read = fat16_read_file(&file_entry, file_buf, sizeof(file_buf));
+		serial_puts("File contents:\n");
+
+		for (uint32_t i = 0; i < file_entry.file_size && i < read; i++) {
+			char c = file_buf[i];
+			if (c >= 32 && c < 127)
+				serial_putc(c);
+			else if (c == '\n' || c == '\r')
+				serial_putc(c);
+			else
+				serial_putc('.');
+		}
+		serial_puts("\n");
+	} else {
+		serial_puts("TEST.TXT not found\n");
+	}
     
     for(;;) asm volatile("hlt");
 }

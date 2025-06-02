@@ -22,15 +22,20 @@ typedef struct {
 } fat16_boot_sector_t;
 
 typedef struct {
-    char     filename[8];
-    char     ext[3];
-    uint8_t  attributes;
-    uint8_t  reserved[10];
-    uint16_t time;
-    uint16_t date;
-    uint16_t first_cluster;
+    uint8_t name[8];
+    uint8_t ext[3];
+    uint8_t attr;
+    uint8_t reserved;
+    uint8_t creation_time_tenths;
+    uint16_t creation_time;
+    uint16_t creation_date;
+    uint16_t last_access_date;
+    uint16_t high_start_cluster; // = 0 for FAT16
+    uint16_t write_time;
+    uint16_t write_date;
+    uint16_t start_cluster;
     uint32_t file_size;
-} fat16_dir_entry_t;
+} __attribute__((packed)) fat16_dir_entry_t;
 #pragma pack(pop)
 
 void fat16_init(uint32_t partition_start);
