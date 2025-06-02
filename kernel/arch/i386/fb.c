@@ -149,3 +149,20 @@ int fb_write(const char *buf, unsigned int len) {
     return len;
 }
 
+void fb_backspace() {
+    if (cursor_visible) fb_toggle_cursor();
+
+    if (cursor_x > 15) {
+        cursor_x -= CHAR_WIDTH * SCALE;
+    } else if (cursor_y > 0) {
+        cursor_y -= CHAR_HEIGHT * SCALE + 16;
+        cursor_x = fb_info.width - CHAR_WIDTH * SCALE;
+    } else {
+        // Уже в начале экрана — ничего не делаем
+        return;
+    }
+
+    draw_rect(cursor_x, cursor_y, CHAR_WIDTH * SCALE, CHAR_HEIGHT * SCALE, BG_COLOR);
+
+    if (!cursor_visible) fb_toggle_cursor();
+}

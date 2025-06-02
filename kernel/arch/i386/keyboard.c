@@ -56,6 +56,12 @@ void keyboard_handler(void) {
             return;
         }
 
+        // Нажат Backspace
+        if (scancode == 0x0E) {
+            fb_backspace();
+            return;
+        }
+
         char c = 0;
         if (scancode < sizeof(kbd_us)) {
             // Выбор таблицы: shift или нет
@@ -89,3 +95,4 @@ int keyboard_is_shift_pressed(void) {
 int keyboard_is_capslock_enabled(void) {
     return caps_lock_enabled;
 }
+
