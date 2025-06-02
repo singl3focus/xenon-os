@@ -1,5 +1,6 @@
 #include "fb.h"
 #include "font.h"
+#include "timer.h"
 #include <kernel/drivers/io.h>
 
 Framebuffer_Info fb_info;
@@ -35,10 +36,10 @@ void fb_toggle_cursor() {
     }
 }
 
-void fb_cursor_blink_loop(unsigned int delay_count) {
+void fb_cursor_blink_loop() {
     while (1) {
         fb_toggle_cursor();
-        delay(delay_count);
+        delay(1000);
     }
 }
 
@@ -87,13 +88,6 @@ void draw_string(int x, int y, const char* str, uint32_t fg_color, uint32_t bg_c
 
 void fb_clear(uint32_t color) {
     draw_rect(0, 0, fb_info.width, fb_info.height, color);
-}
-
-void delay(unsigned int count) {
-    for (volatile unsigned int i = 0; i < count; i++) {
-        // Простой пустой цикл — задержка
-        __asm__ __volatile__("nop");
-    }
 }
 
 void fb_scroll() {

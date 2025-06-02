@@ -12,7 +12,7 @@ multiboot_header_start:
     .long multiboot_header_end - multiboot_header_start # HEADER_LENGTH
     .long -(MAGIC + ARCH + (multiboot_header_end - multiboot_header_start)) # CHECKSUM
 
-    # Tag: EFI graphics (GOP)
+    # Tag: Framebuffer
     .short 5                   # Type: Framebuffer
     .short 0                   # Flags: 0 = optional, 1 = required
     .long 20                   # Size

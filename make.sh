@@ -53,6 +53,7 @@ KERNEL_SOURCES=(
     "${ARCH_DIR}/fb.c"
     "${ARCH_DIR}/font.c"
     "${ARCH_DIR}/multiboot2.c"
+    "${ARCH_DIR}/timer.c"
 )
 
 for source in "${KERNEL_SOURCES[@]}"; do
@@ -101,6 +102,7 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/font.o \
     ${BUILD_DIR}/pic.o \
     ${BUILD_DIR}/multiboot2.o \
+    ${BUILD_DIR}/timer.o \
     ${BUILD_DIR}/printf.o \
     ${BUILD_DIR}/putchar.o \
     ${BUILD_DIR}/puts.o \
@@ -121,7 +123,7 @@ else
     exit 1
 fi
 
-# Подготовка ISO с raw бинарником
+# Подготовка ISO
 echo "Подготовка ISO..."
 mkdir -p ${ISO_DIR}/boot/grub
 cp ${BUILD_DIR}/${OS_NAME}.bin ${ISO_DIR}/boot/

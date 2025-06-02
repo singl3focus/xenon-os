@@ -7,6 +7,7 @@
 #include "../../arch/i386/keyboard.h"
 #include "../../arch/i386/fb.h"
 #include "../../arch/i386/draw_logo.h"
+#include "../../arch/i386/timer.h"
 
 /* Check if the compiler thinks you are targeting the wrong operating system. */
 #if defined(__linux__)
@@ -34,7 +35,6 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     serial_puts("\nMultiboot addr: ");
     serial_put_hex(addr);
     serial_puts("\n");
-	//terminal_initialize();
 
 	// Перенастраиваем PIC на вектора 0x20-0x2F
 	pic_remap(0x20, 0x28);
@@ -44,6 +44,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 	serial_puts("IDT initialized\n");
 
 	// Регистрируем IRQ обработчики
+	timer_init(2000);
 	keyboard_init();
 	serial_puts("Keyboard initialized\n");
 
@@ -64,10 +65,13 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     serial_puts("\n  BPP: "); serial_put_dec(fb_info.bpp);
     serial_puts("\n");
     
+	// Разрешаем прерывания
+	asm volatile("sti");
+
     // Тест графики
     serial_puts("Testing graphics...\n");
     fb_clear(0x001F2126);
-    delay(50000000);
+    //delay(1);
 
     
     // Основной логотип
@@ -78,14 +82,9 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     fb_write("Welcome to Xenon OS!\n", 21);
     fb_write("Enter text:", 12);
 
-	// Разрешаем прерывания
-	asm volatile("sti");
-	
-	//terminal_writestring("Hello, kernel World!\n");
-
 	asm volatile("int $0x00");
 
-	//fb_cursor_blink_loop(15000000);
+	fb_cursor_blink_loop();
 
 	for (;;) __asm__ volatile("hlt");
 }
