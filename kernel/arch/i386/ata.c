@@ -10,6 +10,8 @@ static void ata_wait() {
 }
 
 void ata_handler(void) {
+    if (!(inb(ATA_STATUS) & ATA_SR_DRQ)) return;
+
     serial_puts("ATA IRQ triggered\n");
 
     // Прочитать статус для сброса прерывания
@@ -35,7 +37,7 @@ void ata_read_sectors(uint32_t lba, uint16_t count, void* buffer) {
     ata_wait();
     
     // Выбор устройства (LBA mode + Master)
-    outb(ATA_DRIVE_SEL, 0xE0 | ((lba >> 24) & 0x0F));
+    outb(ATA_DRIVE_SEL, 0xF0 | ((lba >> 24) & 0x0F));
     
     // Добавьте задержку
     for(int i=0; i<1000; i++) asm volatile("nop");
@@ -49,7 +51,6 @@ void ata_read_sectors(uint32_t lba, uint16_t count, void* buffer) {
     // Атомарный сброс флага ПЕРЕД отправкой команды
     asm volatile("cli");
     g_ata_irq_triggered = 0;
-    outb(ATA_COMMAND, ATA_CMD_READ);
     asm volatile("sti");
     
     uint16_t* dest = (uint16_t*)buffer;
