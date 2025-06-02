@@ -1,7 +1,6 @@
 #include <kernel/drivers/io.h>
-#include <kernel/tty.h>
-#include <stdio.h>
-
+#include <stdint.h>
+#include "fb.h"
 #include "keyboard.h"
 #include "pic.h"
 
@@ -77,7 +76,7 @@ void keyboard_handler(void) {
             }
 
             if (c != 0) {
-                terminal_putchar(c); // Выводим символ
+                fb_write(&c, 1); // Выводим символ
             }
         }
     }

@@ -49,6 +49,10 @@ KERNEL_SOURCES=(
     "${ARCH_DIR}/isr.c"
     "${ARCH_DIR}/keyboard.c"
     "${ARCH_DIR}/pic.c"
+    "${ARCH_DIR}/draw_logo.c"
+    "${ARCH_DIR}/fb.c"
+    "${ARCH_DIR}/font.c"
+    "${ARCH_DIR}/multiboot2.c"
 )
 
 for source in "${KERNEL_SOURCES[@]}"; do
@@ -78,7 +82,7 @@ done
 # Линковка
 echo "Линковка..."
 $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
-    -ffreestanding -O2 -nostdlib -no-pie \
+    -ffreestanding -O2 -nostdlib \
     ${BUILD_DIR}/boot.o \
     ${BUILD_DIR}/io.o \
     ${BUILD_DIR}/gdt_flush.o \
@@ -92,7 +96,11 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/irq.o \
     ${BUILD_DIR}/isr.o \
     ${BUILD_DIR}/keyboard.o \
+    ${BUILD_DIR}/draw_logo.o \
+    ${BUILD_DIR}/fb.o \
+    ${BUILD_DIR}/font.o \
     ${BUILD_DIR}/pic.o \
+    ${BUILD_DIR}/multiboot2.o \
     ${BUILD_DIR}/printf.o \
     ${BUILD_DIR}/putchar.o \
     ${BUILD_DIR}/puts.o \
@@ -107,13 +115,13 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
 # Проверка Multiboot
 echo "Проверка Multiboot..."
 if $GRUB --is-x86-multiboot2 ${BUILD_DIR}/${OS_NAME}.bin; then
-    echo "Multiboot-совместимость подтверждена"
+    echo "Multiboot ELF валиден"
 else
-    echo "ОШИБКА: Файл не соответствует стандарту Multiboot!"
+    echo "ОШИБКА: ELF файл не соответствует стандарту Multiboot!"
     exit 1
 fi
 
-# Подготовка ISO
+# Подготовка ISO с raw бинарником
 echo "Подготовка ISO..."
 mkdir -p ${ISO_DIR}/boot/grub
 cp ${BUILD_DIR}/${OS_NAME}.bin ${ISO_DIR}/boot/

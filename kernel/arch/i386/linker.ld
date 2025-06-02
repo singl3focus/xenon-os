@@ -5,7 +5,12 @@ ENTRY(_start)
 /* Tell where the various sections of the object files will be put in the final
    kernel image. */
 SECTIONS
-{
+{	
+	.multiboot ALIGN(8) :
+    {
+        KEEP(*(.multiboot))
+    }
+
 	/* It used to be universally recommended to use 1M as a start offset,
 	   as it was effectively guaranteed to be available under BIOS systems.
 	   However, UEFI has made things more complicated, and experimental data
@@ -17,21 +22,16 @@ SECTIONS
 	   memory which is verified to be available by the firmware, in order to
 	   work around this issue. This does not use that feature, so 2M was
 	   chosen as a safer option than the traditional 1M. */
-	. = 2M;
+	. = 1M;
 
 	/* First put the multiboot header, as it is required to be put very early
 	   in the image or the bootloader won't recognize the file format.
 	   Next we'll put the .text section. */
 
-	.multiboot : ALIGN(8)
-    {
-        KEEP(*(.multiboot))
+    .text : ALIGN(4K)
+	{	
+        *(.text)
     }
-
-	.text BLOCK(4K) : ALIGN(4K)
-	{
-		*(.text)
-	}
 
 	/* Read-only data. */
 	.rodata BLOCK(4K) : ALIGN(4K)
