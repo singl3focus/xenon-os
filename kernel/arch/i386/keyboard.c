@@ -1,7 +1,6 @@
 #include <kernel/drivers/io.h>
-#include <kernel/tty.h>
-#include <stdio.h>
-
+#include <stdint.h>
+#include "fb.h"
 #include "keyboard.h"
 #include "pic.h"
 
@@ -32,8 +31,41 @@ static const char kbd_us_shift[] = {
 static int shift_pressed = 0;
 static int caps_lock_enabled = 0;
 
+// Специальные скан-коды (второй байт после 0xE0)
+#define SC_LEFT  0x4B
+#define SC_RIGHT 0x4D
+#define SC_UP    0x48
+#define SC_DOWN  0x50
+
+static int e0_code = 0;  // Флаг для префикса 0xE0
+
 void keyboard_handler(void) {
     uint8_t scancode = inb(KBD_DATA);
+
+    if (scancode == 0xE0) {
+        e0_code = 1;
+        return;
+    }
+
+    if (e0_code) {
+        // Обработка стрелок и других E0-команд
+        switch (scancode) {
+            case SC_LEFT:
+                fb_move_cursor_left();
+                break;
+            case SC_RIGHT:
+                fb_move_cursor_right();
+                break;
+            case SC_UP:
+                fb_move_cursor_up();
+                break;
+            case SC_DOWN:
+                fb_move_cursor_down();
+                break;
+        }
+        e0_code = 0;
+        return;
+    }
 
     // Проверяем отпускание (release)
     int key_released = scancode & 0x80;
@@ -57,28 +89,24 @@ void keyboard_handler(void) {
             return;
         }
 
+        // Нажат Backspace
+        if (scancode == 0x0E) {
+            fb_backspace();
+            return;
+        }
+
         char c = 0;
         if (scancode < sizeof(kbd_us)) {
-            // Выбор таблицы: shift или нет
-            int use_shift = shift_pressed;
-            char base_char = kbd_us[scancode];
-            char shift_char = kbd_us_shift[scancode];
+            char base = kbd_us[scancode];
+            char shifted = kbd_us_shift[scancode];
 
-            if (base_char >= 'a' && base_char <= 'z') {
-                // Буквы: учитывать CapsLock XOR Shift
-                if (caps_lock_enabled ^ shift_pressed) {
-                    c = shift_char;
-                } else {
-                    c = base_char;
-                }
+            if (base >= 'a' && base <= 'z') {
+                c = (caps_lock_enabled ^ shift_pressed) ? shifted : base;
             } else {
-                // Не буквы: учитывать только Shift
-                c = use_shift ? shift_char : base_char;
+                c = shift_pressed ? shifted : base;
             }
 
-            if (c != 0) {
-                terminal_putchar(c); // Выводим символ
-            }
+            if (c) fb_write(&c, 1);
         }
     }
 }
@@ -90,3 +118,4 @@ int keyboard_is_shift_pressed(void) {
 int keyboard_is_capslock_enabled(void) {
     return caps_lock_enabled;
 }
+

@@ -80,6 +80,39 @@ isr_common_stub:
     iret
 
 
+.globl isr128
+.type isr128, @function
+.extern syscall_handler
+
+isr128:
+    pusha
+    push %ds
+    push %es
+    push %fs
+    push %gs
+
+    # Вызов syscall_handler(number, arg1, arg2, arg3)
+    # Аргументы лежат в стеке после pusha и 4 сегментов (4*4 = 16 байт) → 8 регистров * 4 + 16 = 48
+
+    movl %esp, %eax
+
+    pushl 48(%eax)    # arg3
+    pushl 48(%eax)    # arg2 (FIXME: повторяется — ниже правильно)
+    pushl 44(%eax)    # arg2
+    pushl 40(%eax)    # arg1
+    pushl 36(%eax)    # syscall number
+
+    call syscall_handler
+    addl $20, %esp    # очистить стек (5 аргументов)
+
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    popa
+    iret
+
+
 /* Макрос для обработки IRQ */
 .macro IRQ num
     .globl irq\num

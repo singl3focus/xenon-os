@@ -36,6 +36,8 @@ extern void isr29(void) __asm__("isr29");
 extern void isr30(void) __asm__("isr30");
 extern void isr31(void) __asm__("isr31");
 
+extern void isr128();
+
 #ifndef REGS_DEFINED
 #define REGS_DEFINED
 struct regs {
