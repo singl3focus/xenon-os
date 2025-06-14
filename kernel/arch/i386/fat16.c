@@ -1,7 +1,7 @@
-#include <kernel/tty.h>
 #include <kernel/drivers/serial.h>
 #include <string.h>
 #include <stdlib.h>
+#include "fb.h"
 #include "ata.h"
 #include "fat16.h"
 
@@ -53,17 +53,17 @@ void fat16_list_root() {
             // Вывод имени
             for (int k = 0; k < 8; k++) {
                 if (entry->name[k] != ' ') 
-                    terminal_putchar(entry->name[k]);
+                    fb_write(entry->name[k], 1);
             }
             
             if (entry->ext[0] != ' ') {
-                terminal_putchar('.');
+                fb_write('.', 1);
                 for (int k = 0; k < 3; k++) {
                     if (entry->ext[k] != ' ')
-                        terminal_putchar(entry->ext[k]);
+                        fb_write(entry->ext[k], 1);
                 }
             }
-            terminal_putchar('\n');
+            fb_write("\n", 1);
         }
     }
 }

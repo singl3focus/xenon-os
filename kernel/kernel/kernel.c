@@ -1,4 +1,3 @@
-#include <kernel/tty.h>
 #include <kernel/drivers/serial.h>
 #include <kernel/drivers/io.h>
 #include <stdlib.h>
@@ -71,6 +70,9 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     serial_puts("\n  BPP: "); serial_put_dec(fb_info.bpp);
     serial_puts("\n");
     
+    ata_init();
+    serial_puts("ATA driver initialized\n");
+
 	// Разрешаем прерывания
 	asm volatile("sti");
 
@@ -78,7 +80,6 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     serial_puts("Testing graphics...\n");
     fb_clear(0x001F2126);
     //delay(1);
-
     
     // Основной логотип
     serial_puts("Drawing logo...\n");
@@ -86,9 +87,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     serial_puts("Logo drawn\n");
 
     fb_write("Welcome to Xenon OS!\n", 21);
-    fb_write("Enter text:", 12);
-    
-	fb_cursor_blink_loop();
+    fb_write("$ ", 2);
 
     // Чтение MBR
     uint8_t __attribute__((aligned(2))) mbr[512];
@@ -96,8 +95,6 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     ata_read_sectors(0, 1, mbr);
 	serial_puts("ATA read sectors\n");
 
-
-	for (;;) __asm__ volatile("hlt");
     // Проверка сигнатуры MBR
     if (mbr[510] == 0x55 && mbr[511] == 0xAA) {
         // Поиск раздела FAT16 в таблице разделов
@@ -140,10 +137,11 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     }
     
     serial_puts("FAT16 initialized\n");
-    terminal_writestring("Root directory:\n");
-    fat16_list_root();
+    fb_write("Root directory:\n", 16);
+    // fat16_list_root();
 
 	// ТЕСТ:
+    fb_write("content of TEST.TXT: ", 21);
 	int fd = sys_open("TEST.TXT");
 	if (fd >= 0) {
 		uint8_t buf[64];
@@ -152,8 +150,13 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 		for (int i = 0; i < len; i++) {
 			serial_putc(buf[i]);
 		}
+        fb_write(buf, len);
 		sys_close(fd);
 	}
+
+    fb_write("$ ", 2);
+    
+    fb_cursor_blink_loop();
     
     for(;;) asm volatile("hlt");
 }

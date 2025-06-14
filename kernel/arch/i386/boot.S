@@ -46,7 +46,7 @@ _start:
     mov %ebx, %edi  # EDI = multiboot info address
 
     # Инициализация GDT
-    call gdt_init
+    # call gdt_init # (в kernel_main)
 
     # Передача аргументов в kernel_main
     push %edi       # Второй аргумент: адрес информации (uint32_t addr)
