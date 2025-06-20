@@ -131,8 +131,10 @@ void fb_cursor_blink_loop(void) {
     }
 }
 
-int fb_write(const char *buf, unsigned int len) {
-    for (unsigned int i = 0; i < len; i++) {
+int fb_write(const char *buf) {
+    unsigned int len = 0;
+    for (unsigned int i = 0; i < strlen(buf); ++i) { len += 1; }
+    for (unsigned int i = 0; i < len; ++i) {
         char c = buf[i];
         if (cursor_visible) fb_toggle_cursor();
 

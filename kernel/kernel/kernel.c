@@ -86,8 +86,8 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     draw_logo();
     serial_puts("Logo drawn\n");
 
-    fb_write("Welcome to Xenon OS!\n", 21);
-    fb_write("$ ", 2);
+    fb_write("Welcome to Xenon OS!\n");
+    fb_write("$ ");
 
     // Чтение MBR
     uint8_t __attribute__((aligned(2))) mbr[512];
@@ -137,11 +137,11 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     }
     
     serial_puts("FAT16 initialized\n");
-    fb_write("Root directory:\n", 16);
+    fb_write("Root directory:\n");
     // fat16_list_root();
 
 	// ТЕСТ:
-    fb_write("content of TEST.TXT: ", 21);
+    fb_write("content of TEST.TXT: ");
 	int fd = sys_open("TEST.TXT");
 	if (fd >= 0) {
 		uint8_t buf[64];
@@ -150,11 +150,11 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 		for (int i = 0; i < len; i++) {
 			serial_putc(buf[i]);
 		}
-        fb_write(buf, len);
+        fb_write(buf);
 		sys_close(fd);
 	}
 
-    fb_write("$ ", 2);
+    fb_write("$ ");
     
     fb_cursor_blink_loop();
     

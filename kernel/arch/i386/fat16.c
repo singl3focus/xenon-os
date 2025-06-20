@@ -53,17 +53,17 @@ void fat16_list_root() {
             // Вывод имени
             for (int k = 0; k < 8; k++) {
                 if (entry->name[k] != ' ') 
-                    fb_write(entry->name[k], 1);
+                    fb_write(entry->name[k]);
             }
             
             if (entry->ext[0] != ' ') {
-                fb_write('.', 1);
+                fb_write('.');
                 for (int k = 0; k < 3; k++) {
                     if (entry->ext[k] != ' ')
-                        fb_write(entry->ext[k], 1);
+                        fb_write(entry->ext[k]);
                 }
             }
-            fb_write("\n", 1);
+            fb_write("\n");
         }
     }
 }

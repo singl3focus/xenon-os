@@ -20,7 +20,7 @@ void draw_char(int x, int y, char c, uint32_t fg_color, uint32_t bg_color, int s
 void draw_string(int x, int y, const char* str, uint32_t fg_color, uint32_t bg_color, int scale);
 
 void fb_clear(uint32_t color);
-int fb_write(const char *buf, unsigned int len);
+int fb_write(const char *buf);
 void fb_cursor_blink_loop(void);
 void fb_backspace(void);
 void fb_enter(void);

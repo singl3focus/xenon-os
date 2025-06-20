@@ -106,7 +106,7 @@ void keyboard_handler(void) {
                 c = shift_pressed ? shifted : base;
             }
 
-            if (c) fb_write(&c, 1);
+            if (c) fb_write(&c);
         }
     }
 }
