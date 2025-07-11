@@ -106,7 +106,10 @@ void keyboard_handler(void) {
                 c = shift_pressed ? shifted : base;
             }
 
-            if (c) fb_write(&c);
+            if (c) {
+                char s[2] = { c, '\0' };
+                fb_write(s);
+            }
         }
     }
 }

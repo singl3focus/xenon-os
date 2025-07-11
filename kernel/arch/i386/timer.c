@@ -10,6 +10,11 @@ void timer_handler() {
     timer_ticks++;
 }
 
+// Функция для получения текущего времени
+uint32_t get_timer_ticks() {
+    return timer_ticks;
+}
+
 void delay(uint32_t ticks) {
     uint32_t start = timer_ticks;
     while ((timer_ticks - start) < ticks) {

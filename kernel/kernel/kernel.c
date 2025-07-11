@@ -154,11 +154,12 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 		sys_close(fd);
 	}
 
-    fb_write("$ ");
+    fb_write("$ jkngdfkjndgfjnklfdgsjnkgdflsdfgkjnlsdfgjknldfgkljnsdfsdfs");
     
-    fb_cursor_blink_loop();
-    
-    for(;;) asm volatile("hlt");
+    for(;;) {
+        fb_handle_cursor_blink();
+        asm volatile("hlt");
+    }
 }
 
 void check_drive() {

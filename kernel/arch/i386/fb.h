@@ -21,7 +21,7 @@ void draw_string(int x, int y, const char* str, uint32_t fg_color, uint32_t bg_c
 
 void fb_clear(uint32_t color);
 int fb_write(const char *buf);
-void fb_cursor_blink_loop(void);
+void fb_handle_cursor_blink(void);
 void fb_backspace(void);
 void fb_enter(void);
 void fb_insert_char(char c, int was_at_end);

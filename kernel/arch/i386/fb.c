@@ -23,6 +23,8 @@ static const uint32_t FG_COLOR = 0xFFFFFF;
 static const uint32_t BG_COLOR = 0x1F2126;
 static const uint32_t LINE_HEIGHT = CHAR_HEIGHT * SCALE + 16;
 
+static uint32_t last_cursor_blink = 0;
+
 // Объявление вспомогательных функций
 static void redraw_current_line(void);
 static void fb_new_line(void);
@@ -112,24 +114,33 @@ void fb_scroll(void) {
     }
 }
 
+void show_cursor() {
+    cursor_visible = 1;
+    draw_rect(cursor_x, cursor_y, CURSOR_WIDTH, CHAR_HEIGHT * SCALE, CURSOR_COLOR);
+}
+
+void hide_cursor() {
+    cursor_visible = 0;
+    draw_rect(cursor_x, cursor_y, CURSOR_WIDTH, CHAR_HEIGHT * SCALE, BG_COLOR);
+}
+
 void fb_toggle_cursor(void) {
     if (cursor_visible) {
-        // Стираем курсор (заливкой фона)
-        draw_rect(cursor_x, cursor_y, CURSOR_WIDTH, CHAR_HEIGHT * SCALE, BG_COLOR);
-        cursor_visible = 0;
+        hide_cursor();
     } else {
-        // Рисуем курсор (вертикальная полоса)
-        draw_rect(cursor_x, cursor_y, CURSOR_WIDTH, CHAR_HEIGHT * SCALE, CURSOR_COLOR);
-        cursor_visible = 1;
+        show_cursor();
     }
 }
 
-void fb_cursor_blink_loop(void) {
-    while (1) {
+void fb_handle_cursor_blink() {
+    uint32_t current_ticks = get_timer_ticks();
+    
+    if (current_ticks - last_cursor_blink >= 1000) { // 1000ms = 1s 
         fb_toggle_cursor();
-        delay(1000);
+        last_cursor_blink = current_ticks;
     }
 }
+
 
 int fb_write(const char *buf) {
     unsigned int len = 0;
@@ -150,6 +161,8 @@ int fb_write(const char *buf) {
         // Запоминаем, был ли курсор в конце до вставки
         int was_at_end = (current_line_pos == current_line_len);
         fb_insert_char(c, was_at_end);
+
+        if (!cursor_visible) fb_toggle_cursor();
     }
     return (int)len;
 }
@@ -158,7 +171,7 @@ void fb_backspace(void) {
     if (cursor_visible) fb_toggle_cursor();
 
     if (current_line_pos == 0 || current_line_len == 0) {
-        if (!cursor_visible) fb_toggle_cursor();
+        if (cursor_visible) fb_toggle_cursor();
         return;
     }
 
@@ -242,6 +255,10 @@ static void redraw_current_line(void) {
     draw_string(15, cursor_y, current_line, FG_COLOR, BG_COLOR, SCALE);
     // Обновляем положение курсора
     cursor_x = 15 + current_line_pos * CHAR_WIDTH * SCALE;
+
+    if (cursor_visible) {
+        draw_rect(cursor_x, cursor_y, CURSOR_WIDTH, CHAR_HEIGHT * SCALE, CURSOR_COLOR);
+    }
 }
 
 // Перенести на следующую строку (сохранить cursor_x = 15, увеличить cursor_y и, при необходимости, прокрутить)
@@ -263,49 +280,52 @@ static void fb_new_line(void) {
 static void fb_wrap_line(int was_at_end) {
     int max_chars_per_line = (fb_info.width - 30) / (CHAR_WIDTH * SCALE);
     if (max_chars_per_line <= 0) return;
-    if (current_line_len <= max_chars_per_line) return;
-
-    // Определяем, нужно ли переносить курсор
-    int cursor_in_tail = was_at_end && (current_line_pos >= max_chars_per_line);
-    int tail_start = max_chars_per_line;
-    int tail_len = current_line_len - tail_start;
     
-    char tail[MAX_LINE_CHARS] = {0};
-    memcpy(tail, current_line + tail_start, tail_len);
-    tail[tail_len] = '\0';
+    // Проверяем необходимость переноса для текущей строки
+    while (current_line_len > max_chars_per_line) {
+        // Определяем точку переноса (последний пробел или max_chars)
+        int wrap_pos = max_chars_per_line;
+        for (int i = wrap_pos; i > 0; i--) {
+            if (current_line[i] == ' ') {
+                wrap_pos = i;
+                break;
+            }
+        }
 
-    current_line[tail_start] = '\0';
-    current_line_len = tail_start;
-    
-    // Сохраняем текущую позицию Y
-    uint32_t saved_y = cursor_y;
-    redraw_current_line();
-
-    if (cursor_in_tail) {
-        // Переносим курсор на новую строку
-        fb_new_line();
-        memcpy(current_line, tail, tail_len);
-        current_line_len = tail_len;
-        current_line_pos = tail_len;
-        redraw_current_line();
-    } else {
-        // Отрисовываем хвост на новой строке без перемещения курсора
-        uint32_t new_y = saved_y + LINE_HEIGHT;
+        // Выделяем часть для переноса
+        char new_line[MAX_LINE_CHARS] = {0};
+        int new_line_len = current_line_len - wrap_pos - 1;
+        memcpy(new_line, current_line + wrap_pos + 1, new_line_len);
+        new_line[new_line_len] = '\0';
         
-        // Проверяем, нужно ли скроллить
-        if (new_y + CHAR_HEIGHT * SCALE > fb_info.height) {
-            fb_scroll();
-            // Корректируем позиции после скролла
-            if (saved_y >= LINE_HEIGHT) saved_y -= LINE_HEIGHT;
-            if (new_y >= LINE_HEIGHT) new_y -= LINE_HEIGHT;
+        // Обрезаем текущую строку
+        current_line[wrap_pos] = '\0';
+        current_line_len = wrap_pos;
+        
+        // Обновляем позицию курсора
+        if (current_line_pos > wrap_pos) {
+            current_line_pos -= wrap_pos + 1;
+        } else if (current_line_pos == current_line_len && was_at_end) {
+            current_line_pos = new_line_len;
         }
         
-        // Очищаем область и рисуем хвост
-        draw_rect(15, new_y, fb_info.width - 30, CHAR_HEIGHT * SCALE, BG_COLOR);
-        draw_string(15, new_y, tail, FG_COLOR, BG_COLOR, SCALE);
+        // Перерисовываем текущую строку
+        redraw_current_line();
         
-        // Восстанавливаем позицию курсора
-        cursor_x = 15 + current_line_pos * CHAR_WIDTH * SCALE;
-        cursor_y = saved_y;
+        // Переходим на новую строку
+        fb_new_line();
+        
+        // Копируем перенесённую часть в новую строку
+        memcpy(current_line, new_line, new_line_len);
+        current_line_len = new_line_len;
+        current_line[current_line_len] = '\0';
+        
+        // Регулируем позицию курсора
+        if (was_at_end && current_line_pos != new_line_len) {
+            current_line_pos = new_line_len;
+        }
+        
+        // Проверяем необходимость переноса для новой строки
+        redraw_current_line();
     }
 }
