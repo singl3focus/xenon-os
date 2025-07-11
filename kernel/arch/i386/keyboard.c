@@ -89,12 +89,6 @@ void keyboard_handler(void) {
             return;
         }
 
-        // Нажат Backspace
-        if (scancode == 0x0E) {
-            fb_backspace();
-            return;
-        }
-
         char c = 0;
         if (scancode < sizeof(kbd_us)) {
             char base = kbd_us[scancode];
@@ -106,9 +100,14 @@ void keyboard_handler(void) {
                 c = shift_pressed ? shifted : base;
             }
 
+            // Нажат Backspace
+            if (scancode == 0x0E) {
+                shell_handle_input('\b');
+                return;
+            }
+
             if (c) {
-                char s[2] = { c, '\0' };
-                fb_write(s);
+                shell_handle_input(c);
             }
         }
     }

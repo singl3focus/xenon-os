@@ -15,5 +15,9 @@ char* strcpy(char* __restrict dest, const char* __restrict src);
 int strcasecmp(const char* s1, const char* s2);
 char* strcat(char* dest, const char* src);
 char* strncat(char* dest, const char* src, size_t n);
+int strcmp(const char* s1, const char* s2);
+char* strtok(char* str, const char* delim);
+size_t strspn(const char* s, const char* accept);
+char* strpbrk(const char* s, const char* accept);
 
 #endif

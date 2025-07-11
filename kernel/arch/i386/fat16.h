@@ -2,6 +2,7 @@
 #define FAT16_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #pragma pack(push, 1)
 typedef struct {
@@ -56,5 +57,7 @@ void fat16_close(int fd);
 uint16_t fat16_get_next_cluster(uint16_t cluster);
 
 int fat16_read_file(const char* path, void* buf, size_t max_size);
+
+void fat16_list_dir(const char* path);
 
 #endif

@@ -20,10 +20,10 @@ void draw_char(int x, int y, char c, uint32_t fg_color, uint32_t bg_color, int s
 void draw_string(int x, int y, const char* str, uint32_t fg_color, uint32_t bg_color, int scale);
 
 void fb_clear(uint32_t color);
+void fb_reset_state(void);
 int fb_write(const char *buf);
 void fb_handle_cursor_blink(void);
 void fb_backspace(void);
-void fb_enter(void);
 void fb_insert_char(char c, int was_at_end);
 void fb_move_cursor_right(void);
 void fb_move_cursor_left(void);

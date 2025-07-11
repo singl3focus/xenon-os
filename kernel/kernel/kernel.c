@@ -8,6 +8,7 @@
 #include "../../arch/i386/pic.h"
 #include "../../arch/i386/ata.h"
 #include "../../arch/i386/fat16.h"
+#include "../../arch/i386/shell.h"
 #include "../../arch/i386/keyboard.h"
 #include "../../arch/i386/fb.h"
 #include "../../arch/i386/draw_logo.h"
@@ -82,12 +83,12 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     //delay(1);
     
     // Основной логотип
-    serial_puts("Drawing logo...\n");
+    // serial_puts("Drawing logo...\n");
     draw_logo();
-    serial_puts("Logo drawn\n");
+    // serial_puts("Logo drawn\n");
 
-    fb_write("Welcome to Xenon OS!\n");
-    fb_write("$ ");
+    // fb_write("Welcome to Xenon OS!\n");
+    // fb_write("$ ");
 
     // Чтение MBR
     uint8_t __attribute__((aligned(2))) mbr[512];
@@ -137,24 +138,27 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     }
     
     serial_puts("FAT16 initialized\n");
-    fb_write("Root directory:\n");
+    //fb_write("Root directory:\n");
     // fat16_list_root();
 
-	// ТЕСТ:
-    fb_write("content of TEST.TXT: ");
-	int fd = sys_open("TEST.TXT");
-	if (fd >= 0) {
-		uint8_t buf[64];
-		int len = sys_read(fd, buf, sizeof(buf));
-		serial_puts("Read via syscall:\n");
-		for (int i = 0; i < len; i++) {
-			serial_putc(buf[i]);
-		}
-        fb_write(buf);
-		sys_close(fd);
-	}
+    shell_init();  // Инициализация shell
+    serial_puts("Shell initialized\n");
 
-    fb_write("$ jkngdfkjndgfjnklfdgsjnkgdflsdfgkjnlsdfgjknldfgkljnsdfsdfs");
+	// // ТЕСТ:
+    // fb_write("content of TEST.TXT: ");
+	// int fd = sys_open("TEST.TXT");
+	// if (fd >= 0) {
+	// 	uint8_t buf[64];
+	// 	int len = sys_read(fd, buf, sizeof(buf));
+	// 	serial_puts("Read via syscall:\n");
+	// 	for (int i = 0; i < len; i++) {
+	// 		serial_putc(buf[i]);
+	// 	}
+    //     fb_write(buf);
+	// 	sys_close(fd);
+	// }
+
+    // fb_write("$ jkngdfkjndgfjnklfdgsjnkgdflsdfgkjnlsdfgjknldfgkljnsdfsdfs");
     
     for(;;) {
         fb_handle_cursor_blink();

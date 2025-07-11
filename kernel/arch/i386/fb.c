@@ -90,6 +90,16 @@ void fb_clear(uint32_t color) {
     draw_rect(0, 0, fb_info.width, fb_info.height, color);
 }
 
+void fb_reset_state() {
+    memset(current_line, 0, sizeof(current_line));
+    current_line_len = 0;
+    current_line_pos = 0;
+    cursor_x = 15;
+    cursor_y = 20;
+    cursor_visible = 1;
+}
+
+
 void fb_scroll(void) {
     uint32_t shift_bytes = LINE_HEIGHT * fb_info.pitch;
     uint32_t screen_bytes = fb_info.pitch * fb_info.height;
@@ -143,18 +153,13 @@ void fb_handle_cursor_blink() {
 
 
 int fb_write(const char *buf) {
-    unsigned int len = 0;
-    for (unsigned int i = 0; i < strlen(buf); ++i) { len += 1; }
+    unsigned int len = strlen(buf);
     for (unsigned int i = 0; i < len; ++i) {
         char c = buf[i];
-        if (cursor_visible) fb_toggle_cursor();
+        hide_cursor();  // Всегда скрываем курсор перед выводом
 
         if (c == '\n') {
-            memset(current_line, 0, sizeof(current_line));
-            current_line_len = 0;
-            current_line_pos = 0;
             fb_new_line();
-            if (!cursor_visible) fb_toggle_cursor();
             continue;
         }
 

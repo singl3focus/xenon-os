@@ -1,5 +1,6 @@
 #include <kernel/drivers/serial.h>
 #include <string.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include "fb.h"
 #include "ata.h"
@@ -193,4 +194,48 @@ int fat16_read_file(const char* path, void* buf, size_t max_size) {
     int len = fat16_read(fd, buf, max_size);
     fat16_close(fd);
     return len;
+}
+
+void fat16_list_dir(const char* path) {
+    // Пока поддерживаем только корневой каталог
+    if (strcmp(path, "/") != 0) {
+        fb_write("Subdirectories not supported yet\n");
+        return;
+    }
+    
+    uint8_t sector_buffer[512];
+    uint16_t entries_per_sector = 512 / sizeof(fat16_dir_entry_t);
+    
+    for (uint32_t i = 0; i < g_bs.root_entries; i += entries_per_sector) {
+        uint32_t sector = g_root_dir_start + (i / entries_per_sector);
+        ata_read_sectors(sector, 1, sector_buffer);
+        
+        fat16_dir_entry_t* entry = (fat16_dir_entry_t*)sector_buffer;
+        for (int j = 0; j < entries_per_sector; j++, entry++) {
+            if (entry->name[0] == 0x00) return;
+            if (entry->name[0] == 0xE5) continue;
+            
+            char filename[13] = {0};
+            memcpy(filename, entry->name, 8);
+            
+            // Убираем пробелы в конце имени
+            for (int k = 7; k >= 0 && filename[k] == ' '; k--) {
+                filename[k] = '\0';
+            }
+            
+            // Добавляем расширение
+            if (entry->ext[0] != ' ') {
+                strcat(filename, ".");
+                strncat(filename, (char*)entry->ext, 3);
+            }
+            
+            // Определяем тип (файл/директория)
+            if (entry->attr & 0x10) {
+                strcat(filename, "/");
+            }
+            
+            strcat(filename, "\n");
+            fb_write(filename);
+        }
+    }
 }

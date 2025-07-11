@@ -27,7 +27,7 @@ mkdir -p ${BUILD_DIR}
 INCLUDES="-I${KERNEL_DIR}/include -I${KERNEL_DIR}/include/drivers -I${LIBC_DIR}/include -I${ARCH_DIR}"
 
 # Общие флаги компиляции
-CFLAGS="-std=gnu99 -ffreestanding -m32 -O2 -Wall -Wextra -nostartfiles ${INCLUDES}"
+CFLAGS="-std=gnu99 -ffreestanding -m32 -O2 -Wall -Wextra -nostartfiles -g ${INCLUDES}"
 
 # Компиляция ассемблерных файлов
 echo "Компиляция ассемблерных файлов..."
@@ -56,6 +56,7 @@ KERNEL_SOURCES=(
     "${ARCH_DIR}/timer.c"
     "${ARCH_DIR}/ata.c"
     "${ARCH_DIR}/fat16.c"
+    "${ARCH_DIR}/shell.c"
     "${ARCH_DIR}/syscall.c"
 )
 
@@ -81,6 +82,10 @@ LIBC_SOURCES=(
     "${LIBC_DIR}/string/strlen.c"
     "${LIBC_DIR}/string/strcpy.c"
     "${LIBC_DIR}/string/strncat.c"
+    "${LIBC_DIR}/string/strcmp.c"
+    "${LIBC_DIR}/string/strpbrk.c"
+    "${LIBC_DIR}/string/strspn.c"
+    "${LIBC_DIR}/string/strtok.c"
 )
 
 for source in "${LIBC_SOURCES[@]}"; do
@@ -113,6 +118,7 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/timer.o \
     ${BUILD_DIR}/ata.o \
     ${BUILD_DIR}/fat16.o \
+    ${BUILD_DIR}/shell.o \
     ${BUILD_DIR}/syscall.o \
     ${BUILD_DIR}/printf.o \
     ${BUILD_DIR}/putchar.o \
@@ -128,7 +134,15 @@ $LINKER -T ${ARCH_DIR}/linker.ld -o ${BUILD_DIR}/${OS_NAME}.bin \
     ${BUILD_DIR}/strlen.o \
     ${BUILD_DIR}/strcpy.o \
     ${BUILD_DIR}/strncat.o \
+    ${BUILD_DIR}/strcmp.o \
+    ${BUILD_DIR}/strpbrk.o \
+    ${BUILD_DIR}/strspn.o \
+    ${BUILD_DIR}/strtok.o \
     -lgcc
+
+# Генерация ELF-файла с отладочной информацией
+echo "Генерация ELF-файла с отладочной информацией..."
+cp ${BUILD_DIR}/${OS_NAME}.bin ${BUILD_DIR}/${OS_NAME}.elf
 
 # Проверка Multiboot
 echo "Проверка Multiboot..."
