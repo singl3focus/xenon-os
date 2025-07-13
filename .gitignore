@@ -1,0 +1,20 @@
+# IDE
+.vscode
+
+# Completed data
+*.o
+*.iso
+*.out
+*.elf
+*.img
+/build
+/iso
+
+# Logs
+bochslog.txt
+
+# Configs
+/configs/*.txt
+
+# Temp
+**/*temp*/
