@@ -1,6 +1,7 @@
 #include <kernel/drivers/io.h>
 #include <kernel/drivers/serial.h>
 #include "ata.h"
+#include "pic.h"
 
 // Глобальный флаг и семафор
 volatile int g_ata_irq_triggered = 0;
@@ -95,6 +96,7 @@ void ata_read_sectors(uint32_t lba, uint16_t count, void* buffer) {
 
 void ata_init() { // поллинг (без прерываний)
     // Пока просто проверяем готовность
+    pic_send_eoi(14);
     ata_wait();
     outb(ATA_DRIVE_SEL, 0xA0); // Select Master
     while ((inb(ATA_STATUS) & ATA_SR_DRDY) == 0);
